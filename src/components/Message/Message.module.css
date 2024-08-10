@@ -1,0 +1,31 @@
+.mUser > div {
+    background-color: #2F2F2F;
+    border-radius: 20px;
+    color: white;
+    max-width: 50%;
+    text-align: start;
+    padding: 10px;
+    white-space: pre-line;
+}
+
+.mUser {
+    display: flex;
+    justify-content: end;
+    width: 55%;
+    margin: auto;
+}
+
+.mAdmin > div {
+    
+    color: white;
+    width: 100%;
+    text-align: start;
+    padding: 5px;
+}
+
+.mAdmin {
+    display: flex;
+    justify-content: start;
+    width: 55%;
+    margin: auto;
+}
