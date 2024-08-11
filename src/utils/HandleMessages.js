@@ -1,9 +1,8 @@
-import Groq from 'groq-sdk';
+
 import { useState , useEffect } from 'react';
 
 
 export default (groq) => {
-    console.log(groq);
     const [messages , setMessages] = useState([]);
     const [previousOp , setPreviousOp] = useState("");
     const system_prompt = "[always state the language inside the markdown when including code if code exists]";

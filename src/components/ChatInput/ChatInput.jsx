@@ -1,6 +1,5 @@
 import React , {createRef, useContext} from 'react';
 import styles from './ChatInput.module.css';
-import GroqContext from '../GroqContext';
 
 const ChatInput = ({setMessage , message , sendMessage}) => {
 

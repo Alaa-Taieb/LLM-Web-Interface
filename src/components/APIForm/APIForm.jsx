@@ -1,4 +1,4 @@
-import react, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import GroqContext from '../GroqContext';
 import styles from './APIForm.module.css';
 import Groq from 'groq-sdk';
