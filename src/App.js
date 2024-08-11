@@ -6,7 +6,6 @@ import { useContext, useState } from 'react';
 import APIForm from './components/APIForm/APIForm';
 
 function App() {
-  // const [groq , setGroq] = useState({ apiKey: "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" , dangerouslyAllowBrowser: true})
   const [groq , setGroq] = useState({ apiKey: "" , dangerouslyAllowBrowser: true})
   const [groqObject , setGroqObject] = useState();
   return (
