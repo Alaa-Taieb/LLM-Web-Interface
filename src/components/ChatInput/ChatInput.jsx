@@ -1,4 +1,4 @@
-import React , {createRef, useContext} from 'react';
+import React , {createRef} from 'react';
 import styles from './ChatInput.module.css';
 
 const ChatInput = ({setMessage , message , sendMessage}) => {
