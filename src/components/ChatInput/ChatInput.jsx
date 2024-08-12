@@ -4,7 +4,7 @@ import styles from './ChatInput.module.css';
 const ChatInput = ({setMessage , message , sendMessage}) => {
 
     
-    let myFormRef = createRef();
+    let formRef = createRef();
 
     const handleSend = (e) => {
         e.preventDefault();
@@ -13,26 +13,26 @@ const ChatInput = ({setMessage , message , sendMessage}) => {
     }
 
     const handleChange = e => {
-        let v = e.target.value;
-        if ((v.length % 100 == 0) && (v.length != 0)){
-            v = `${v}\n`;
-        }
-        let lb_n = v.split("\n").length;
-        lb_n = lb_n > 7 ? 7 : lb_n;
-        e.target.rows = lb_n;
-        setMessage(v);
+        let inputValue = e.target.value;
+        if ((inputValue.length % 100 == 0) && (inputValue.length != 0))
+            inputValue = `${inputValue}\n`;
+        
+        let lineBreakCount = inputValue.split("\n").length;
+        lineBreakCount = lineBreakCount > 7 ? 7 : lineBreakCount;
+        e.target.rows = lineBreakCount;
+        setMessage(inputValue);
     }
 
     const onEnterPress = (e) => {
         if(e.keyCode == 13 && e.shiftKey == false) {
             e.preventDefault();
-            console.log(myFormRef.current);
-            myFormRef.current.requestSubmit();
+            console.log(formRef.current);
+            formRef.current.requestSubmit();
         }
     }
 
     return (
-        <form ref={myFormRef} onSubmit={handleSend} className={styles.input} >
+        <form ref={formRef} onSubmit={handleSend} className={styles.input} >
             <textarea className={styles.text_area}  cols="100" rows="1" placeholder='Type your message Here' onChange={handleChange} value={message} onKeyDown={onEnterPress}>
 
             </textarea>
