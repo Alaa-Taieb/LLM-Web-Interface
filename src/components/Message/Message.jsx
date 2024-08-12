@@ -22,15 +22,13 @@ const Message = ({message}) => {
         Prism.highlightAll();
     }, []);
 
-    const convert = (mo) => {
-        if (mo.role == 'user'){
-            return mo.content;
+    const convert = (messageObject) => {
+        if (messageObject.role == 'user'){
+            return messageObject.content;
         }
-        let m = mo.content;
-        // console.log(m);
-        m = converter.makeHtml(m);
-        // m = m.split("<");
-        return m;
+        let messageContent = messageObject.content;
+        messageContent = converter.makeHtml(messageContent);
+        return messageContent;
     }
 
     return (
