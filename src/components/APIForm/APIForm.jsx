@@ -7,7 +7,7 @@ import Groq from 'groq-sdk';
 const APIForm = () => {
 
     const [apiKey , setApiKey] = useState("");
-    const [groq , setGroq , groqObject , setGroqObject] = useContext(GroqContext);
+    const [groq , setGroq , setGroqObject] = useContext(GroqContext);
 
 
     useState(()=> {
