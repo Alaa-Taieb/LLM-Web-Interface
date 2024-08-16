@@ -17,7 +17,7 @@ const ChatHistory = ({messages}) => {
     return (
         <div className={styles.history}>
             {/* Map over the messages array and render a Message component for each item */}
-            {messages.map((item,i) => <Message key={i} message={item}/>)}
+            {messages.filter(message => message.role != 'system').map((item,i) => <Message key={i} message={item}/>)}
         </div>
     );
 }

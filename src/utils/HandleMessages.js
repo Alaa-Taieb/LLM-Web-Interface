@@ -11,14 +11,37 @@ import { useState , useEffect } from 'react';
  * @returns {Object} An object containing the list of messages and the sendMessage function.
  */
 export default (groq) => {
-    // State to store the list of chat messages
-    const [messages , setMessages] = useState([]);
+    /**
+     * System prompt that provides context or instructions to the model.
+     * This prompt is included as a system message in the conversation.
+     * 
+     * @type {string}
+     */
+    const systemPrompt = "always state the language inside the markdown when including code if code exists";
 
-    // State to track the previous operation, used to determine when to fetch a response
+    /**
+     * Initial system message object that includes the system prompt.
+     * This message is prepended to the list of messages.
+     * 
+     * @type {Object}
+     * @property {string} role - The role of the message sender (always "system").
+     * @property {string} content - The content of the system message.
+     */
+    const systemMessageObject = {role: "system", content: systemPrompt};
+
+    /**
+     * State to store the list of chat messages, initialized with the system message.
+     * 
+     * @type {Array<Object>}
+     */
+    const [messages , setMessages] = useState([systemMessageObject]);
+
+    /**
+     * State to track the previous operation, used to determine when to fetch a response.
+     * 
+     * @type {string}
+     */
     const [previousOp , setPreviousOp] = useState("");
-
-    // System prompt to be prepended to every message sent to the API
-    const system_prompt = "[always state the language inside the markdown when including code if code exists]";
 
     /**
      * Effect to trigger the getResponse function whenever the messages array changes.
@@ -30,19 +53,14 @@ export default (groq) => {
     /**
      * Fetches a response from the Groq API if the previous operation was a "send".
      * 
-     * This function sends the user's messages to the API, including the system prompt,
-     * and updates the message history with the received response.
+     * This function sends the user's messages to the API and updates the message history
+     * with the received response. The system prompt is included in each user message sent to the API.
      */
     const getResponse = async() => {
         if (previousOp == "send"){
-            console.log({
-                messages: messages.map(item => {return {role: 'user', content: `${system_prompt}${item.content}`}}),
-                model: "llama3-70b-8192"
-            });
-            
             try {
                 const response = await groq.chat.completions.create({
-                    messages: messages.map(item => {return {role: 'user', content: `${system_prompt}${item.content}`}}),
+                    messages: messages.map(item => {return {role: 'user', content: item.content}}),
                     model: "llama3-70b-8192"
                 })
 
@@ -70,6 +88,7 @@ export default (groq) => {
             content: message
         };
 
+        // Set operation to "send" and update the message list with the new message
         setPreviousOp("send")
         setMessages([...messages , message_object]);
 
