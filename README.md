@@ -15,11 +15,11 @@ This project is a React-based chat application that integrates with the Groq API
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/react-chat-app.git
+   git clone https://github.com/Alaa-Taieb/LLM-Web-Interface.git
    ```
 2. Navigate to the project directory:
    ```
-   cd react-chat-app
+   cd LLM-Web-Interface
    ```
 3. Install dependencies:
    ```
