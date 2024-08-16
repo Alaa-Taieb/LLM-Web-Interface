@@ -61,7 +61,7 @@ const ChatInput = ({setMessage , message , sendMessage}) => {
      * @param {React.KeyboardEvent<HTMLTextAreaElement>} e - The keyboard event.
      */
     const onEnterPress = (e) => {
-        if(e.keyCode == 13 && e.shiftKey == false) {
+        if(e.keyCode == 13 && e.shiftKey == false && message.trim() != "") {
             e.preventDefault();
             console.log(formRef.current);
             formRef.current.requestSubmit();
