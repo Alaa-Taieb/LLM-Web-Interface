@@ -69,7 +69,8 @@ const ChatInput = ({setMessage , message , sendMessage}) => {
     }
 
     return (
-        <form ref={formRef} onSubmit={handleSend} className={styles.input}>
+        <div className={styles.input_container}>
+            <form ref={formRef} onSubmit={handleSend} className={styles.input}>
             <textarea
                 className={styles.text_area}
                 cols="100"
@@ -90,6 +91,7 @@ const ChatInput = ({setMessage , message , sendMessage}) => {
                 </span>
             </button>
         </form>
+        </div>
     );
 }
 
