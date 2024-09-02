@@ -14,9 +14,10 @@ import TypingEffect from '../TypingEffect/TypingEffect';
  * @param {Object} props.message - The message object containing the role and content.
  * @param {string} props.message.role - The role of the message sender (e.g., "user" or "admin").
  * @param {string} props.message.content - The content of the message.
+ * @param {React.RefObject} [props.endBlockRef] - Optional reference to scroll into view after the typing effect.
  * @returns {JSX.Element} The rendered Message component.
  */
-const Message = ({ message }) => {
+const Message = ({ message , endBlockRef}) => {
 
     /**
      * Converter instance to transform Markdown into HTML.
@@ -47,7 +48,7 @@ const Message = ({ message }) => {
             {message.role === 'user' ? (
                 <div>{message.content}</div>
             ) : (
-                <TypingEffect text={convert(message)} speed={10} />
+                <TypingEffect endBlockRef={endBlockRef} text={convert(message)} speed={5} />
             )}
         </div>
     );

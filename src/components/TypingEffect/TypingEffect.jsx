@@ -13,6 +13,7 @@ import 'prismjs/components/prism-csharp';
 import 'prismjs/components/prism-c';
 import 'prismjs/components/prism-cpp';
 import 'prismjs/components/prism-ruby';
+import scrollTo from '../../utils/ScrollTo';
 
 /**
  * TypingEffect component renders text with a typing animation effect, character by character.
@@ -23,15 +24,18 @@ import 'prismjs/components/prism-ruby';
  * @param {Object} props - The properties object.
  * @param {string} props.text - The full text to be displayed with the typing effect.
  * @param {number} [props.speed=50] - The typing speed in milliseconds per character. Default is 50ms.
+ * @param {React.RefObject} [props.endBlockRef] - Optional reference for scrolling to the end of the text.
  * 
  * @returns {JSX.Element} The TypingEffect component that displays text with a typing animation.
  */
-const TypingEffect = ({ text, speed = 50 }) => {
+const TypingEffect = ({ text, speed = 50  , endBlockRef}) => {
     // State to store the text currently being displayed, updated one character at a time
     const [displayedText, setDisplayedText] = useState('');
 
     // State to track the current index of the character being typed
     const [index, setIndex] = useState(0);
+
+    
 
     /**
      * Effect to handle the typing animation.
@@ -48,6 +52,9 @@ const TypingEffect = ({ text, speed = 50 }) => {
 
             // Move to the next character index
             setIndex((prev) => prev + 1);
+
+            // Scroll to the end block
+            scrollTo(endBlockRef , {});
         }, speed);
 
         // Apply syntax highlighting to the displayed text
