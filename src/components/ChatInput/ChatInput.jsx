@@ -1,5 +1,6 @@
-import React , {createRef} from 'react';
+import React , {createRef, useEffect, useState} from 'react';
 import styles from './ChatInput.module.css';
+import useWindowDimensions from '../../utils/WindowDimensions';
 
 /**
  * Component for the chat input area.
@@ -16,6 +17,16 @@ import styles from './ChatInput.module.css';
  * @returns {JSX.Element} The rendered ChatInput component.
  */
 const ChatInput = ({setMessage , message , sendMessage}) => {
+    // Get the current window dimensions using the custom hook
+    const { height , width } = useWindowDimensions();
+
+    // State to dynamically set the input width based on the window width
+    const [inputWidth, setInputWidth] = useState(100);
+
+    // Update the input width whenever the window width changes
+    useEffect(() => {
+        setInputWidth(width / 10 < 100 ? width / 10 : 100);
+    } , [width]);
 
     /**
      * Reference to the form element, used to programmatically submit the form.
@@ -43,8 +54,8 @@ const ChatInput = ({setMessage , message , sendMessage}) => {
     const handleChange = e => {
         let inputValue = e.target.value;
 
-        // Insert a line break every 100 characters
-        if ((inputValue.length % 100 == 0) && (inputValue.length != 0))
+        // Insert a line break every 'inputWidth' characters
+        if ((inputValue.length % inputWidth == 0) && (inputValue.length != 0))
             inputValue = `${inputValue}\n`;
         
         // Limit the number of line breaks to a maximum of 7 rows
@@ -73,7 +84,7 @@ const ChatInput = ({setMessage , message , sendMessage}) => {
             <form ref={formRef} onSubmit={handleSend} className={styles.input}>
             <textarea
                 className={styles.text_area}
-                cols="100"
+                cols={inputWidth}
                 rows="1"
                 placeholder='Type your message here'
                 onChange={handleChange}
