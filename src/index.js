@@ -3,12 +3,15 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import '@fontsource/inter';
+import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
-  <React.StrictMode>
+  <CssVarsProvider>
     <App />
-  </React.StrictMode>
+  </CssVarsProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
