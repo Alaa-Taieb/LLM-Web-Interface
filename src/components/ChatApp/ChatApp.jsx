@@ -20,25 +20,28 @@ import scrollTo from '../../utils/ScrollTo';
 const ChatApp = ({message , setMessage , messages , sendMessage}) => {
     // Reference to the end of the chat history, used for auto-scrolling
     const endBlockRef = useRef();
-    
-    
-    
+    const chatHistoryRef = useRef(null);
+
     /**
      * useEffect hook to scroll to the end of the chat history whenever a new message is added.
      * 
      * The scrollTo function is called with the endBlockRef to ensure smooth scrolling to the latest message.
      */
     useEffect(() => {
-        scrollTo(endBlockRef , {behavior: "smooth"})
+        const chatHistory = chatHistoryRef.current;
+
+        if (chatHistory) {
+                scrollTo(endBlockRef , {behavior: "smooth"});
+        }
     }, [messages]);
     
     return (
-        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`}>
+        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`} ref={chatHistoryRef}>
             {/* Render the chat history, passing the messages array */}
             <ChatHistory messages={messages} endBlockRef={endBlockRef}/>
 
             {/* Spacer div to add some space before the input field */}
-            {/* <div ref={endBlockRef} style={{height: "100px"}}></div> */}
+            <div ref={endBlockRef}></div>
 
             {/* Render the chat input field, passing necessary props for message management */}
             {/* <ChatInput  setMessage={setMessage} sendMessage={sendMessage} message={message}/> */}

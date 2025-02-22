@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import styles from './Message.module.css';
 import showdown from 'showdown';
-import TypingEffect from '../TypingEffect/TypingEffect';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/vs2015.min.css'; // Choose a theme
 
@@ -77,7 +76,7 @@ const Message = ({ message , endBlockRef}) => {
         let messageContent = messageObject.content;
 
         // Remove semicolons after angle brackets
-        // messageContent = messageContent.replace(/<;/g, '<').replace(/>;/g, '>');
+        messageContent = messageContent.replace(/<;/g, '<').replace(/>;/g, '>');
 
         return converter.makeHtml(messageContent);
     };
@@ -87,10 +86,10 @@ const Message = ({ message , endBlockRef}) => {
             {message.role === 'user' ? (
                 <div>{message.content}</div>
             ) : (
-                <TypingEffect endBlockRef={endBlockRef} text={convert(message)} speed={0} />
+                <div dangerouslySetInnerHTML={{ __html: convert(message) }} />
             )}
         </div>
     );
 };
 
-export default Message;
+export default memo(Message);

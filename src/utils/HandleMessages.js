@@ -1,4 +1,4 @@
-import { useState , useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Custom hook to manage chat messages and interaction with the Groq API.
@@ -10,92 +10,58 @@ import { useState , useEffect } from 'react';
  * @param {Object} groq - The Groq API instance used to send and receive chat messages.
  * @returns {Object} An object containing the list of messages and the sendMessage function.
  */
-export default (groq) => {
-    /**
-     * System prompt that provides context or instructions to the model.
-     * This prompt is included as a system message in the conversation.
-     * 
-     * @type {string}
-     */
-    const systemPrompt = "always state the language inside the markdown when including code if code exists, but never mention anything about it.";
+const HandleMessages = (groq) => {
+    const [messages, setMessages] = useState([]);
 
-    /**
-     * Initial system message object that includes the system prompt.
-     * This message is prepended to the list of messages.
-     * 
-     * @type {Object}
-     * @property {string} role - The role of the message sender (always "system").
-     * @property {string} content - The content of the system message.
-     */
-    const systemMessageObject = {role: "system", content: systemPrompt};
+    const sendMessage = useCallback(async (message) => {
+        if (!message) return;
 
-    /**
-     * State to store the list of chat messages, initialized with the system message.
-     * 
-     * @type {Array<Object>}
-     */
-    const [messages , setMessages] = useState([systemMessageObject]);
+        // Add user message to the chat
+        setMessages(prevMessages => [...prevMessages, { role: 'user', content: message }]);
 
-    /**
-     * State to track the previous operation, used to determine when to fetch a response.
-     * 
-     * @type {string}
-     */
-    const [previousOp , setPreviousOp] = useState("");
+        try {
+            // Create a new array of messages without the 'completed' property
+            const apiMessages = messages.map(({ role, content }) => ({ role, content }));
+            apiMessages.push({ role: 'user', content: message });
 
-    /**
-     * Effect to trigger the getResponse function whenever the messages array changes.
-     */
-    useEffect(() => {
-        getResponse();
-    } , [messages])
+            const stream = await groq.chat.completions.create({
+                model: 'llama3-70b-8192',
+                messages: apiMessages,
+                stream: true,
+            });
 
-    /**
-     * Fetches a response from the Groq API if the previous operation was a "send".
-     * 
-     * This function sends the user's messages to the API and updates the message history
-     * with the received response. The system prompt is included in each user message sent to the API.
-     */
-    const getResponse = async() => {
-        if (previousOp == "send"){
-            try {
-                const response = await groq.chat.completions.create({
-                    messages: messages.map(item => {return {role: 'user', content: item.content}}),
-                    model: "llama3-70b-8192"
-                })
+            let fullResponse = "";
+            for await (const chunk of stream) {
+                const content = chunk.choices[0]?.delta?.content || "";
+                fullResponse += content;
 
-                const receivedMessage = response.choices[0].message;
-
-                // Clear the previous operation and add the received message to the message list
-                setPreviousOp("");
-                setMessages([...messages, {...receivedMessage , number: messages.length}]);
-            }catch(err){
-                console.log(err);
+                setMessages(prevMessages => {
+                    // If the last message is from the assistant and is not yet complete, update it
+                    if (prevMessages.length > 0 && prevMessages[prevMessages.length - 1].role === 'assistant' && !prevMessages[prevMessages.length - 1].completed) {
+                        const updatedMessages = [...prevMessages];
+                        updatedMessages[prevMessages.length - 1] = { role: 'assistant', content: fullResponse, completed: false };
+                        return updatedMessages;
+                    } else {
+                        // Otherwise, add a new message from the assistant
+                        return [...prevMessages, { role: 'assistant', content: content, completed: false }];
+                    }
+                });
             }
+
+            // Mark the last message as complete
+            setMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[prevMessages.length - 1] = { ...updatedMessages[prevMessages.length - 1], completed: true };
+                return updatedMessages;
+            });
+
+        } catch (error) {
+            console.error("Error during streaming:", error);
+            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "Error: " + error.message }]);
         }
-    }
+    }, [groq, messages]);
 
-    /**
-     * Adds a new user message to the message list and triggers the API call.
-     * 
-     * @param {string} message - The content of the user's message.
-     */
-    const sendMessage = async (message) => {
-        const message_object = 
-        {
-            number: messages.length,
-            role: 'user',
-            content: message
-        };
-        // Set operation to "send" and update the message list with the new message
-        setPreviousOp("send")
-        setMessages([...messages , message_object]);
+    return { messages, sendMessage };
+};
 
-        
-    }
-
-    // TODO: Implement function to modify an existing message
-
-    // TODO: Implement function to delete a message
-    return {messages , sendMessage}
-}
+export default HandleMessages;
