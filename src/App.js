@@ -55,7 +55,7 @@ function App() {
           </Grid>
           {/* Messaging Side */}
           <Grid xs={10} sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
-            <Sheet sx={{width: '100%' ,p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'start', flexGrow: 1 }} color='neutral' variant='soft'>
+            <Sheet sx={{width: '100%' ,padding: '5px 20px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'start', flexGrow: 1 }} color='neutral' variant='soft'>
               <Header />
               <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage}/>
             </Sheet>

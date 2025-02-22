@@ -10,7 +10,7 @@ const Footer = ({setMessage , sendMessage , message}) => {
     return (
         <Box 
         component={'div'}
-        sx={{ width: "100%", maxWidth: '80%', display: 'flex', justifyContent: 'center', position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)' }}
+        sx={{ width: "100%", maxWidth: 'var(--message-width)', display: 'flex', justifyContent: 'center', position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)' }}
         >
             <Textarea
             placeholder='Type in here...'

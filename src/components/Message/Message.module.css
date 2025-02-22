@@ -25,6 +25,9 @@
     justify-content: end;
     width: 80%;
     margin: auto;
+    /* Styles for user messages */
+    max-width: var(--message-width);
+    /* Add other styles as needed */
 }
 
 .mAdmin > div {
@@ -41,6 +44,9 @@
     justify-content: start;
     width: 80%;
     margin: auto;
+    /* Styles for admin messages */
+    max-width: var(--message-width);
+    /* Add other styles as needed */
 }
 
 @media only screen and (max-width: 1000px){

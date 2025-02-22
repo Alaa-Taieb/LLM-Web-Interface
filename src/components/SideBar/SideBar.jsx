@@ -4,7 +4,7 @@ import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
 const SideBar = () => {
     return (
-        <Sheet>
+        <Sheet sx={{padding: '5px'}}>
             <Grid container>
                 <Grid xs={2}>
                     <IconButton >
