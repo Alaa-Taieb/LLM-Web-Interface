@@ -58,10 +58,10 @@ export async function getGroqChatCompletion(groq) {
  *
  * @returns {React.ReactElement} - The rendered component.
  */
-const APIForm = () => {
+const APIForm = ({setOpenAPIFormModal}) => {
 
     // State variable to track the validity of the API key. Initially set to false.
-    const [APIValid, setAPIValid] = useState(false);
+    const [APIValid, setAPIValid] = useState("false");
 
     // State variable to track any error messages related to the API key. Initially set to an empty string.
     const [error, setError] = useState("");
@@ -85,9 +85,10 @@ const APIForm = () => {
     const verifyAPIKey = () => {
         const g = new Groq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
         getGroqChatCompletion(g)
-            .then(() => { setAPIValid(true); setError("") })
+            .then(() => { setAPIValid("true"); setError("") })
             .catch(err => {
-                setError("Invalid API Key.")
+                setError("Invalid API Key.");
+                setAPIValid("false");
             })
     }
 
@@ -104,6 +105,7 @@ const APIForm = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setGroq({ ...groq, apiKey: apiKey });
+        setOpenAPIFormModal(false);
     }
 
     return (
@@ -193,24 +195,36 @@ const APIForm = () => {
                                 <form onSubmit={handleSubmit}>
                                     <FormControl error={error}>
                                         {/* <FormLabel>API Key</FormLabel> */}
-                                        <Input type='password' color={APIValid ? 'success' : 'neutral'} onChange={e => {
-                                            setApiKey(e.target.value);
-                                            if (APIValid)
-                                                setAPIValid(false)
-                                        }
-                                        } size='md' placeholder='Insert your API Key here ...' endDecorator={
-                                            <>
-                                                {!APIValid ?
-                                                    <IconButton color='success' onClick={(e) => verifyAPIKey()}>
-                                                        <CheckCircleOutlineOutlinedIcon />
-                                                    </IconButton>
-                                                    :
-                                                    <Button type='submit' startDecorator={<SaveOutlinedIcon />}>
-                                                        Save
-                                                    </Button>
-                                                }
-                                            </>
-                                        } />
+                                        <Input 
+                                        type='password' 
+                                        name='api_key' 
+                                        color={APIValid == "true" ? 'success' : APIValid == "false" ? 'neutral' : "neutral"} 
+                                        size='md' 
+                                        placeholder='Insert your API Key here ...' 
+                                        onChange={e => 
+                                            {
+                                                setApiKey(e.target.value);
+                                                if (APIValid == "true")
+                                                    setAPIValid("false")
+                                            }
+                                        } 
+                                        endDecorator=
+                                            {
+                                                <>
+                                                    {
+                                                        (APIValid == "false") || (APIValid == "checking") ?
+                                                            <IconButton color='success' loading={APIValid=="checking"} onClick={(e) => {setAPIValid("checking"); verifyAPIKey()}}>
+                                                                <CheckCircleOutlineOutlinedIcon />
+                                                            </IconButton>
+                                                        : APIValid == "true" ?
+                                                        <Button type='submit' startDecorator={<SaveOutlinedIcon />}>
+                                                            Save
+                                                        </Button>
+                                                        : ""
+                                                    }
+                                                </>
+                                            } 
+                                        />
                                         {error ?
                                             <FormHelperText>
                                                 <InfoOutlinedIcon />

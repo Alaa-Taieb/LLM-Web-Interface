@@ -87,7 +87,6 @@ export default (groq) => {
             role: 'user',
             content: message
         };
-
         // Set operation to "send" and update the message list with the new message
         setPreviousOp("send")
         setMessages([...messages , message_object]);

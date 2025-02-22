@@ -23,7 +23,7 @@
     animation: fade-in 0.5s;
     display: flex;
     justify-content: end;
-    width: 55%;
+    width: 80%;
     margin: auto;
 }
 
@@ -39,7 +39,7 @@
     animation: fade-in 0.5s;
     display: flex;
     justify-content: start;
-    width: 55%;
+    width: 80%;
     margin: auto;
 }
 

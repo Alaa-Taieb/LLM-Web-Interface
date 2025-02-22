@@ -17,18 +17,11 @@ import scrollTo from '../../utils/ScrollTo';
  * 
  * @returns {JSX.Element} The rendered ChatApp component.
  */
-const ChatApp = () => {
+const ChatApp = ({message , setMessage , messages , sendMessage}) => {
     // Reference to the end of the chat history, used for auto-scrolling
     const endBlockRef = useRef();
     
-    // Retrieve the Groq instance from context to be used in message handling
-    const [groq] = useContext(GroqContext);
     
-    // State hook for managing the current input message
-    const [message , setMessage] = useState("");
-    
-    // Destructure the messages array and sendMessage function from the HandleMessages utility
-    const {messages , sendMessage} = HandleMessages(new Groq(groq));
     
     /**
      * useEffect hook to scroll to the end of the chat history whenever a new message is added.
@@ -48,7 +41,7 @@ const ChatApp = () => {
             <div ref={endBlockRef} style={{height: "100px"}}></div>
 
             {/* Render the chat input field, passing necessary props for message management */}
-            <ChatInput  setMessage={setMessage} sendMessage={sendMessage} message={message}/>
+            {/* <ChatInput  setMessage={setMessage} sendMessage={sendMessage} message={message}/> */}
         </div>
     );
 }
