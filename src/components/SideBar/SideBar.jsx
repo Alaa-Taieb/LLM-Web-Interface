@@ -1,23 +1,34 @@
-import { Grid, IconButton, Sheet } from '@mui/joy';
+import { IconButton, Sheet } from '@mui/joy';
 import React from 'react';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
-const SideBar = () => {
+
+const SideBar = ({ minimized, setMinimized }) => {
+    const toggleMinimized = () => {
+        setMinimized(!minimized);
+    };
+
     return (
-        <Sheet sx={{padding: '5px'}}>
-            <Grid container>
-                <Grid xs={2}>
-                    <IconButton >
-                        <ViewSidebarOutlinedIcon />
-                    </IconButton>
-                </Grid>
-                <Grid xs={8}></Grid>
-                <Grid xs={2}>
-                    <IconButton>
-                        <DriveFileRenameOutlineOutlinedIcon />
-                    </IconButton>
-                </Grid>
-            </Grid>
+        <Sheet sx={{
+            padding: '5px 0',
+            width: minimized ? '40px' : '240px', // Adjust width based on minimized state
+            transition: 'width 0.3s ease', // Add a smooth transition
+            overflow: 'hidden', // Hide content when minimized
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'start',
+            flexShrink: 0, // Prevent sidebar from shrinking
+        }}>
+            <IconButton onClick={toggleMinimized} sx={{ width: 'auto' }}>
+                <ViewSidebarOutlinedIcon />
+            </IconButton>
+            {!minimized && ( // Conditionally render the other button
+                <IconButton>
+                    <DriveFileRenameOutlineOutlinedIcon />
+                </IconButton>
+            )}
         </Sheet>
     );
 }
