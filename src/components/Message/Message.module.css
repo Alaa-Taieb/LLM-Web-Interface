@@ -41,25 +41,7 @@
     font-family: 'Arial', sans-serif; /* A clean, readable font */
     font-size: 15px; /* Slightly smaller font size */
     line-height: 1.6; /* Improved line height for readability */
-}
 
-/* ChatGPT-like code block styling */
-.mAdmin > div pre {
-    background-color: #282c34; /* Dark background color */
-    color: #abb2bf; /* Light text color */
-    padding: 12px 16px;
-    border-radius: 5px;
-    overflow-x: auto; /* Enable horizontal scrolling for long code lines */
-    font-family: 'Consolas', monospace; /* Monospace font for code */
-    font-size: 14px;
-    line-height: 1.4;
-    margin: 0.5em 0; /* Add some spacing around the code block */
-}
-
-.mAdmin > div code {
-    font-family: 'Consolas', monospace; /* Monospace font for code */
-    font-size: 14px;
-    line-height: 1.4;
 }
 
 .mAdmin {

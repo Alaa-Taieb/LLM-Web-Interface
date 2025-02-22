@@ -17,7 +17,7 @@ export default (groq) => {
      * 
      * @type {string}
      */
-    const systemPrompt = "always state the language inside the markdown when including code if code exists";
+    const systemPrompt = "always state the language inside the markdown when including code if code exists, but never mention anything about it.";
 
     /**
      * Initial system message object that includes the system prompt.

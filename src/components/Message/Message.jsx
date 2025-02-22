@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styles from './Message.module.css';
 import showdown from 'showdown';
 import TypingEffect from '../TypingEffect/TypingEffect';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/vs2015.min.css'; // Choose a theme
 
 /**
  * Component to render individual messages in the chat.
@@ -19,11 +21,45 @@ import TypingEffect from '../TypingEffect/TypingEffect';
  */
 const Message = ({ message , endBlockRef}) => {
 
+    const messageRef = useRef(null);
+
+    useEffect(() => {
+        if (messageRef.current) {
+            hljs.highlightAll();
+        }
+    }, [message.content]);
+
+    // Define the hljs extension for showdown
+    const hljsSetup = function(converter) {
+        return {
+            type: 'output',
+            filter: function (text, converter, options) {
+                // use new shodown's regexp engine to conditionally parse codeblocks
+                return text.replace(/<pre><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/gi, function (match, code) {
+                    let highlighted = hljs.highlightAuto(code).value;
+                    // Replace ampersands with their unescaped counterparts
+                    highlighted = highlighted.replace(/&amp;/g, '&');
+                    highlighted = highlighted.replace(/<;/g, '<').replace(/>;/g, '>');
+                    // alert(highlighted);
+                    return '<pre><code class="hljs">' + highlighted + '</code></pre>';
+                });
+            }
+        };
+    };
+
     /**
      * Converter instance to transform Markdown into HTML.
      * @type {showdown.Converter}
      */
-    const converter = new showdown.Converter();
+    const converter = new showdown.Converter({
+        noHeaderId: true,
+        tables: true,
+        strikethrough: true,
+        tasklists: true,
+        simplifiedAutoLink: true,
+        extensions: [hljsSetup],
+        escapeHtml: false // Disable HTML escaping
+    });
 
     /**
      * Converts the message content based on the sender's role.
@@ -39,16 +75,19 @@ const Message = ({ message , endBlockRef}) => {
             return messageObject.content;
         }
         let messageContent = messageObject.content;
-        messageContent = converter.makeHtml(messageContent);
-        return messageContent;
+
+        // Remove semicolons after angle brackets
+        // messageContent = messageContent.replace(/<;/g, '<').replace(/>;/g, '>');
+
+        return converter.makeHtml(messageContent);
     };
 
     return (
-        <div className={message.role === 'user' ? styles.mUser : styles.mAdmin}>
+        <div className={message.role === 'user' ? styles.mUser : styles.mAdmin} ref={messageRef}>
             {message.role === 'user' ? (
                 <div>{message.content}</div>
             ) : (
-                <TypingEffect endBlockRef={endBlockRef} text={convert(message)} speed={5} />
+                <TypingEffect endBlockRef={endBlockRef} text={convert(message)} speed={0} />
             )}
         </div>
     );
