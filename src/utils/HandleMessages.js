@@ -12,12 +12,14 @@ import { useState, useCallback } from 'react';
  */
 const HandleMessages = (groq) => {
     const [messages, setMessages] = useState([]);
+    const [isSending, setIsSending] = useState(false);
 
     const sendMessage = useCallback(async (message) => {
         if (!message) return;
-
+        setIsSending(true);
         // Add user message to the chat
         setMessages(prevMessages => [...prevMessages, { role: 'user', content: message }]);
+        // window.alert("Message sent!"); // Alert when user message is sent
 
         try {
             // Create a new array of messages without the 'completed' property
@@ -52,16 +54,19 @@ const HandleMessages = (groq) => {
             setMessages(prevMessages => {
                 const updatedMessages = [...prevMessages];
                 updatedMessages[prevMessages.length - 1] = { ...updatedMessages[prevMessages.length - 1], completed: true };
+                // window.alert("Response received!"); // Alert when assistant is done responding
+                setIsSending(false);
                 return updatedMessages;
             });
 
         } catch (error) {
             console.error("Error during streaming:", error);
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "Sorry, there was an error processing your request. Please try again." }]);
+            setIsSending(false);
         }
-    }, [groq, messages]);
+    }, [groq]);
 
-    return { messages, sendMessage };
+    return { messages, sendMessage , isSending , setIsSending};
 };
 
 export default HandleMessages;

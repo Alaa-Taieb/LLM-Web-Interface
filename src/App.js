@@ -33,7 +33,7 @@ function App() {
     const [message , setMessage] = useState("");
     
     // Destructure the messages array and sendMessage function from the HandleMessages utility
-    const {messages , sendMessage} = HandleMessages(new Groq(groq));
+    const {messages , sendMessage , isSending , setIsSending} = HandleMessages(new Groq(groq));
 
   useEffect(() => {
     setOpenAPIFormModal(groq.apiKey === "");
@@ -58,7 +58,7 @@ function App() {
             <Sheet sx={{width: '100%' ,padding: '5px 20px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center',flexGrow: 1 }} color='neutral' variant='soft'>
               <Header />
               <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage}/>
-              <Footer setMessage={setMessage} sendMessage={sendMessage} message={message}/>
+              <Footer setMessage={setMessage} sendMessage={sendMessage} message={message} isSending={isSending} setIsSending={setIsSending}/>
             </Sheet>
           </Grid>
         </Grid>

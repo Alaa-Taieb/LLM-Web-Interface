@@ -1,32 +1,47 @@
-import { Box, IconButton, Input, Textarea } from '@mui/joy';
-import React from 'react';
+import React, { useState } from 'react';
 import ArrowCircleUpIcon from '@mui/icons-material/ArrowCircleUp';
-const Footer = ({setMessage , sendMessage , message}) => {
+import styles from './Footer.module.css'; // Import the CSS module
+import CircularProgress from '@mui/joy/CircularProgress'; // Import CircularProgress
+
+const Footer = ({setMessage , sendMessage , message, isSending, setIsSending}) => {
+    const [rows, setRows] = useState(1);
 
     const handleSend = e => {
+        setIsSending(true);
         sendMessage(message);
         setMessage("");
+        setRows(1); // Reset rows after sending
     }
+
+    const handleChange = e => {
+        setMessage(e.target.value);
+        const newLines = e.target.value.split('\n').length;
+        setRows(Math.min(newLines, 5)); // Limit to 5 rows
+    };
+
     return (
-        <Box 
-        component={'div'}
-        sx={{ width: "100%", maxWidth: 'var(--message-width)', display: 'flex', justifyContent: 'center'}}
-        >
-            <Textarea
-            placeholder='Type in here...'
-            maxRows={3}
-            size='lg'
-            sx={{flexGrow: 1}}
-            onChange={e => setMessage(e.target.value)}
-            value={message}
+        <div className={styles.footerContainer}>
+            <textarea
+                placeholder='Ask anything'
+                rows={rows}
+                className={styles.footerTextarea}
+                onChange={handleChange}
+                value={message}
+                onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault(); // Prevent newline on Enter
+                        handleSend();
+                    }
+                }}
+            />
+            <button 
+                className={styles.footerButton}
+                onClick={handleSend}
+                disabled={isSending}
             >
-            </Textarea>
-            <IconButton 
-            size='lg'
-            color='primary' onClick={e => handleSend()}>
-                <ArrowCircleUpIcon/>
-            </IconButton>
-        </Box>
+                {isSending ? <CircularProgress size="sm" color="neutral" /> : <ArrowCircleUpIcon/>}
+            </button>
+        </div>
     );
 }
 

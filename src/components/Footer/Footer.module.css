@@ -1,0 +1,75 @@
+.footerContainer {
+    display: flex;
+    width: 100%;
+    max-width: var(--message-width);
+    padding: 6px 10px; /* Adjusted padding */
+    background-color: #202123; /* Slightly lighter than main background */
+    border-radius: 12px; /* More rounded corners */
+    margin: 0 auto; /* Center the footer */
+    border: 0px solid #35363A; /* Subtle border */
+}
+
+.footerTextarea {
+    flex: 1;
+    border: none;
+    padding: 10px 12px; /* Adjusted padding */
+    font-size: 16px;
+    border-radius: 12px; /* More rounded corners */
+    resize: none; /* Prevent manual resizing */
+    overflow: auto; /* Enable scrollbar when needed */
+    min-height: 30px; /* Minimum height */
+    max-height: 160px; /* Maximum height */
+    background-color: #202123; /* Match container background */
+    color: #E8EAED; /* Light gray text */
+    font-family: 'Arial', sans-serif; /* Use Arial font */
+    line-height: 1.4; /* Adjust line height */
+    caret-color: #fff; /* White caret color */
+}
+
+.footerTextarea::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.footerTextarea::-webkit-scrollbar-track {
+    border-radius: 4px;
+}
+
+.footerTextarea::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scroll thumb */
+    border-radius: 4px;
+}
+
+.footerTextarea::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the scroll thumb on hover */
+}
+
+.footerTextarea::placeholder {
+    color: #5F6368; /* Darker placeholder text */
+    opacity: 0.8; /* Slightly more opaque */
+}
+
+.footerTextarea:focus {
+    outline: none; /* Remove focus outline */
+}
+
+.footerButton {
+    background-color: rgba(255, 255, 255, 0.08); /* Very subtle button background */
+    color: #9AA0A6; /* Light gray button text */
+    border: none;
+    padding: 10px; /* Adjusted padding */
+    border-radius: 50%; /* Circular shape */
+    cursor: pointer;
+    margin-left: 10px; /* Adjusted margin */
+    transition: background-color 0.2s ease; /* Smooth transition */
+    font-size: 1.3rem; /* Increased font size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px; /* Increased height */
+    width: 40px; /* Increased width */
+    align-self: flex-end; /* Align to the bottom */
+}
+
+.footerButton:hover {
+    background-color: rgba(255, 255, 255, 0.16); /* Slightly brighter on hover */
+}
