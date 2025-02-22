@@ -55,6 +55,22 @@
     /* Add other styles as needed */
 }
 
+
+
+/* Ensure error message text color is not overridden */
+.mError > div {
+    background-color: #dc3545; /* Vibrant red background */
+    color: #fff !important; /* White text */
+    border-radius: 5px; /* Rounded corners */
+    padding: 8px 12px; /* Adjust padding */
+    font-weight: lighter; /* Semi-bold font weight */
+    font-size: 0.9em; /* Smaller font size */
+    display: inline-block; /* Display as inline block */
+    margin: 5px 0; /* Add top and bottom margins */
+    word-break: break-word; /* Prevent long words from overflowing */
+    width: auto;
+}
+
 @media only screen and (max-width: 1000px){
     .mUser{
         width: 95%!important;

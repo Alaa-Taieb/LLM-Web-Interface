@@ -82,7 +82,7 @@ const Message = ({ message , endBlockRef}) => {
     };
 
     return (
-        <div className={message.role === 'user' ? styles.mUser : styles.mAdmin} ref={messageRef}>
+        <div className={`${message.role === 'user' ? styles.mUser : styles.mAdmin} ${message.content === "Sorry, there was an error processing your request. Please try again." ? styles.mError : ""}`} ref={messageRef}>
             {message.role === 'user' ? (
                 <div>{message.content}</div>
             ) : (

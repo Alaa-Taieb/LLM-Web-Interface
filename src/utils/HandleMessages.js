@@ -57,7 +57,7 @@ const HandleMessages = (groq) => {
 
         } catch (error) {
             console.error("Error during streaming:", error);
-            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "Error: " + error.message }]);
+            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "Sorry, there was an error processing your request. Please try again." }]);
         }
     }, [groq, messages]);
 
