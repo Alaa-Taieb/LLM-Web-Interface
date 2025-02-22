@@ -49,18 +49,19 @@ function App() {
           <APIForm setOpenAPIFormModal={setOpenAPIFormModal}/>
         </Modal>
         <Grid container>
+          {/* Side Bar */}
           <Grid xs={2} sx={{height: "100vh"}}>
             <SideBar />
           </Grid>
-          <Grid xs={10} container sx={{minHeight: '100vh'}}>
-            <Sheet sx={{width: '100%' ,p: 3, height: '100%' , display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}} color='neutral' variant='soft'>
+          {/* Messaging Side */}
+          <Grid xs={10} sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
+            <Sheet sx={{width: '100%' ,p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'start', flexGrow: 1 }} color='neutral' variant='soft'>
               <Header />
               <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage}/>
-              <Footer setMessage={setMessage} sendMessage={sendMessage} message={message}/>
             </Sheet>
+            <Footer setMessage={setMessage} sendMessage={sendMessage} message={message}/>
           </Grid>
         </Grid>
-        {/* { groq.apiKey == "" ? <APIForm/> : <ChatApp /> } */}
       </GroqContext.Provider>
     </Sheet>
   );

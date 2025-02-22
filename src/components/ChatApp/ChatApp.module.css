@@ -1,12 +1,39 @@
 .chatApp {
 }
 
-.Input {
+.chatInput {
     position: absolute;
     background-color: red;
     bottom: 20px;
 }
 
-.history {
+.chatHistory {
     
+}
+
+.chatHistoryContainer {
+    overflow: auto;
+    height: 80vh;
+    width: 100%;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom Scrollbar Styling */
+.scrollable::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.scrollable::-webkit-scrollbar-track {
+    /* background: #f1f1f1; Color of the tracking area */
+    border-radius: 4px;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scroll thumb */
+    border-radius: 4px;
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the scroll thumb on hover */
 }

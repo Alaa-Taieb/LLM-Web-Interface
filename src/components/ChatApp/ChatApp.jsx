@@ -33,12 +33,12 @@ const ChatApp = ({message , setMessage , messages , sendMessage}) => {
     }, [messages]);
     
     return (
-        <div className={styles.chatApp}>
+        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`}>
             {/* Render the chat history, passing the messages array */}
             <ChatHistory messages={messages} endBlockRef={endBlockRef}/>
 
             {/* Spacer div to add some space before the input field */}
-            <div ref={endBlockRef} style={{height: "100px"}}></div>
+            {/* <div ref={endBlockRef} style={{height: "100px"}}></div> */}
 
             {/* Render the chat input field, passing necessary props for message management */}
             {/* <ChatInput  setMessage={setMessage} sendMessage={sendMessage} message={message}/> */}
