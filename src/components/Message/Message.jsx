@@ -15,11 +15,9 @@ import 'highlight.js/styles/vs2015.min.css'; // Choose a theme
  * @param {Object} props.message - The message object containing the role and content.
  * @param {string} props.message.role - The role of the message sender (e.g., "user" or "admin").
  * @param {string} props.message.content - The content of the message.
- * @param {React.RefObject} [props.endBlockRef] - Optional reference to scroll into view after the typing effect.
  * @returns {JSX.Element} The rendered Message component.
  */
-const Message = ({ message , endBlockRef}) => {
-
+const Message = ({ message }) => {
     const messageRef = useRef(null);
 
     useEffect(() => {
@@ -48,7 +46,6 @@ const Message = ({ message , endBlockRef}) => {
 
     /**
      * Converter instance to transform Markdown into HTML.
-     * @type {showdown.Converter}
      */
     const converter = new showdown.Converter({
         noHeaderId: true,
@@ -57,23 +54,22 @@ const Message = ({ message , endBlockRef}) => {
         tasklists: true,
         simplifiedAutoLink: true,
         extensions: [hljsSetup],
-        escapeHtml: false // Disable HTML escaping
+        escapeHtml: false, // Disable HTML escaping
+        simpleLineBreaks: true, // Enable automatic line breaks
     });
 
     /**
      * Converts the message content based on the sender's role.
      * 
-     * For user messages, the content is returned as plain text. For admin messages,
-     * Markdown content is converted to HTML.
-     * 
      * @param {Object} messageObject - The message object containing the role and content.
      * @returns {string} The processed message content, either as plain text or HTML.
      */
-    const convert = (messageObject) => {
-        if (messageObject.role === 'user') {
-            return messageObject.content;
+    const convert = ({ role, content }) => {
+        if (role === 'user') {
+            return content;
         }
-        let messageContent = messageObject.content;
+
+        let messageContent = content;
 
         // Remove semicolons after angle brackets
         messageContent = messageContent.replace(/<;/g, '<').replace(/>;/g, '>');
@@ -81,10 +77,11 @@ const Message = ({ message , endBlockRef}) => {
         return converter.makeHtml(messageContent);
     };
 
+    const { role, content } = message;
     return (
-        <div className={`${message.role === 'user' ? styles.mUser : styles.mAdmin} ${message.content === "Sorry, there was an error processing your request. Please try again." ? styles.mError : ""}`} ref={messageRef}>
-            {message.role === 'user' ? (
-                <div>{message.content}</div>
+        <div className={`${role === 'user' ? styles.mUser : styles.mAdmin} ${content === "Sorry, there was an error processing your request. Please try again." ? styles.mError : ""}`} ref={messageRef}>
+            {role === 'user' ? (
+                <div>{content}</div>
             ) : (
                 <div dangerouslySetInnerHTML={{ __html: convert(message) }} />
             )}

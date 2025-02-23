@@ -1,11 +1,18 @@
-import { IconButton, Sheet } from '@mui/joy';
 import React from 'react';
+import { Grid, IconButton, Sheet } from '@mui/joy';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
 
+/**
+ * Component to render the sidebar with minimize/maximize functionality.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.minimized - Whether the sidebar is minimized or not.
+ * @param {function} props.setMinimized - Function to set the minimized state.
+ */
 const SideBar = ({ minimized, setMinimized }) => {
     const toggleMinimized = () => {
-        setMinimized(!minimized);
+        setMinimized((prevMinimized) => !prevMinimized);
     };
 
     return (

@@ -20,7 +20,7 @@ function App() {
   const { messages, sendMessage, isSending, setIsSending } = HandleMessages(new Groq(groq));
   useEffect(() => {
     setOpenAPIFormModal(groq.apiKey === "");
-  }, []);
+  }, [groq.apiKey]);
   const [groqObject, setGroqObject] = useState();
   const [minimized, setMinimized] = useState(false);
 

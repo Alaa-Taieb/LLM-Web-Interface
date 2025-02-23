@@ -1,64 +1,30 @@
 import { useState, useCallback } from 'react';
+import GroqService from '../services/GroqService';
 
 /**
  * Custom hook to manage chat messages and interaction with the Groq API.
- * 
- * This hook handles sending user messages to the Groq API and updating the message history
- * with the responses. It maintains the list of messages and tracks the previous operation
- * to determine when to fetch a response from the API.
- * 
- * @param {Object} groq - The Groq API instance used to send and receive chat messages.
- * @returns {Object} An object containing the list of messages and the sendMessage function.
+ *
+ * @param {Object} groq - The Groq API instance.
+ * @returns {Object} An object containing the messages, sendMessage function, and loading state.
  */
 const HandleMessages = (groq) => {
     const [messages, setMessages] = useState([]);
     const [isSending, setIsSending] = useState(false);
 
+    /**
+     * Sends a message to the Groq API and updates the message history.
+     *
+     * @param {string} message - The message to send.
+     */
     const sendMessage = useCallback(async (message) => {
         if (!message) return;
         setIsSending(true);
+
         // Add user message to the chat
         setMessages(prevMessages => [...prevMessages, { role: 'user', content: message }]);
-        // window.alert("Message sent!"); // Alert when user message is sent
 
         try {
-            // Create a new array of messages without the 'completed' property
-            const apiMessages = messages.map(({ role, content }) => ({ role, content }));
-            apiMessages.push({ role: 'user', content: message });
-
-            const stream = await groq.chat.completions.create({
-                model: 'llama3-70b-8192',
-                messages: apiMessages,
-                stream: true,
-            });
-
-            let fullResponse = "";
-            for await (const chunk of stream) {
-                const content = chunk.choices[0]?.delta?.content || "";
-                fullResponse += content;
-
-                setMessages(prevMessages => {
-                    // If the last message is from the assistant and is not yet complete, update it
-                    if (prevMessages.length > 0 && prevMessages[prevMessages.length - 1].role === 'assistant' && !prevMessages[prevMessages.length - 1].completed) {
-                        const updatedMessages = [...prevMessages];
-                        updatedMessages[prevMessages.length - 1] = { role: 'assistant', content: fullResponse, completed: false };
-                        return updatedMessages;
-                    } else {
-                        // Otherwise, add a new message from the assistant
-                        return [...prevMessages, { role: 'assistant', content: content, completed: false }];
-                    }
-                });
-            }
-
-            // Mark the last message as complete
-            setMessages(prevMessages => {
-                const updatedMessages = [...prevMessages];
-                updatedMessages[prevMessages.length - 1] = { ...updatedMessages[prevMessages.length - 1], completed: true };
-                // window.alert("Response received!"); // Alert when assistant is done responding
-                setIsSending(false);
-                return updatedMessages;
-            });
-
+            await GroqService.sendMessage(groq, messages, message, setIsSending, setMessages);
         } catch (error) {
             console.error("Error during streaming:", error);
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "Sorry, there was an error processing your request. Please try again." }]);
@@ -66,7 +32,7 @@ const HandleMessages = (groq) => {
         }
     }, [groq]);
 
-    return { messages, sendMessage , isSending , setIsSending};
+    return { messages, sendMessage, isSending, setIsSending };
 };
 
 export default HandleMessages;
