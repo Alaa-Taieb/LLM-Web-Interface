@@ -28,7 +28,7 @@ const Footer = ({setMessage , sendMessage , message, isSending, setIsSending}) =
                 onChange={handleChange}
                 value={message}
                 onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === 'Enter' && !e.shiftKey && !isSending) {
                         e.preventDefault(); // Prevent newline on Enter
                         handleSend();
                     }
