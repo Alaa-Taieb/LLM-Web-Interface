@@ -1,3 +1,4 @@
+/* Keyframes */
 @keyframes fade-in {
     0% {
         opacity: 0;
@@ -9,18 +10,22 @@
     }
 }
 
+/* Message Styles */
+.mUser > div,
+.mAdmin > div {
+    color: #D1D1D1;
+    max-width: 100%;
+    text-align: start;
+    padding: 9px 16px;
+    font-family: 'Arial', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
 .mUser > div {
     background-color: #2F2F2F;
-    border-radius: 30px; /* Reduced border-radius for a more subtle look */
-    color: #D1D1D1; /* Softer text color */
-    max-width: 100%; /* Take up available space */
-    text-align: start;
-    padding: 9px 16px; /* Adjusted padding for better spacing */
-    white-space: pre-line;
-    font-family: 'Arial', sans-serif; /* A clean, readable font */
-    font-size: 15px; /* Slightly smaller font size */
-    line-height: 1.6; /* Improved line height for readability */
-    word-wrap: break-word;
+    border-radius: 30px;
 }
 
 .mUser {
@@ -28,23 +33,8 @@
     display: flex;
     justify-content: end;
     width: 80%;
-    /* max-width: 80%; */
     max-width: 753.6px;
     margin: auto;
-    /* Styles for user messages */
-    max-width: var(--message-width);
-    /* Add other styles as needed */
-}
-
-.mAdmin > div {
-    color: #D1D1D1; /* Softer text color */
-    width: 100%;
-    text-align: start;
-    padding: 12px 16px; /* Adjusted padding for better spacing */
-    font-family: 'Arial', sans-serif; /* A clean, readable font */
-    font-size: 15px; /* Slightly smaller font size */
-    line-height: 1.6; /* Improved line height for readability */
-
 }
 
 .mAdmin {
@@ -52,42 +42,11 @@
     display: flex;
     justify-content: start;
     width: 80%;
-    /* max-width: 80%; */
     max-width: 753.6px;
     margin: auto;
-    /* Styles for admin messages */
-    max-width: var(--message-width);
-    /* Add other styles as needed */
 }
 
-.codeblock {
-    margin-top: 0;
-}
-
-/* Ensure error message text color is not overridden */
-.mError > div {
-    background-color: #dc3545; /* Vibrant red background */
-    color: #fff !important; /* White text */
-    border-radius: 5px; /* Rounded corners */
-    padding: 8px 12px; /* Adjust padding */
-    font-weight: lighter; /* Semi-bold font weight */
-    font-size: 0.9em; /* Smaller font size */
-    display: inline-block; /* Display as inline block */
-    margin: 5px 0; /* Add top and bottom margins */
-    word-break: break-word; /* Prevent long words from overflowing */
-    width: auto;
-}
-
-@media only screen and (max-width: 1000px){
-    .mUser{
-        width: 95%!important;
-    }
-
-    .mAdmin{
-        width: 95%!important;
-    }
-}
-
+/* Code Block Styles */
 .codeBlockContainer {
     border-radius: 8px;
     overflow: hidden;
@@ -123,37 +82,73 @@
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.1);
 }
+
 .codeBlockContainer pre {
     max-width: 100%;
+    margin-top: 0;
 }
 
-
-/* Add this style to change the background color of the code tag */
 .codeBlockContainer pre code {
-    background-color: #0b0d0e !important; /* Replace with your desired color */
-    padding: 0.2em 0.4em; /* Add some padding for better visual appearance */
-    /* border-radius: 3px; Optional: Add rounded corners */
+    background-color: #0b0d0e !important;
+    padding: 0.2em 0.4em;
     border-bottom-right-radius: 6px;
     border-bottom-left-radius: 6px;
     border: 0.8px solid rgba(255, 255, 255, 0.15);
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: pre; /* Preserve whitespace and line breaks */
 }
 
 /* Custom Scrollbar Styling for Code Blocks */
 .codeBlockContainer pre code::-webkit-scrollbar {
-    /* width: 17px; Width of the scrollbar */
     height: 8px;
 }
 
 .codeBlockContainer pre code::-webkit-scrollbar-track {
-    /* background: #f1f1f1; Color of the tracking area */
     border-radius: 4px;
 }
 
 .codeBlockContainer pre code::-webkit-scrollbar-thumb {
-    background: #888; /* Color of the scroll thumb */
+    background: #888;
     border-radius: 4px;
 }
 
 .codeBlockContainer pre code::-webkit-scrollbar-thumb:hover {
-    background: #555; /* Color of the scroll thumb on hover */
+    background: #555;
+}
+
+/* Inline Code Styling */
+.inlineCode {
+    background-color: #424242; /* Example: Light gray background */
+    color: #4ec9b0;
+    border-radius: 6px;
+    padding: 2px 4px;
+    font-family: monospace; /* Use a monospace font */
+}
+
+/* Error Message Styling */
+.mError > div {
+    background-color: #dc3545;
+    color: #fff !important;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-weight: lighter;
+    font-size: 0.9em;
+    display: inline-block;
+    margin: 5px 0;
+    word-break: break-word;
+    width: auto;
+}
+
+/* Media Queries */
+@media only screen and (max-width: 1000px){
+    .mUser,
+    .mAdmin {
+        width: 95%!important;
+    }
+}
+
+/* List Styling */
+.mAdmin ul li::marker,
+.mAdmin ol li::marker {
+    font-weight: bold;
 }
