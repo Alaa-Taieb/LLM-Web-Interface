@@ -1,12 +1,8 @@
 import React, { useRef, useContext, useEffect } from 'react';
-import Groq from 'groq-sdk';
-import { useState } from 'react';
-import ChatInput from '../ChatInput/ChatInput';
 import ChatHistory from '../ChatHistory/ChatHistory';
 import styles from './ChatApp.module.css';
-import HandleMessages from '../../utils/HandleMessages';
-import GroqContext from '../GroqContext';
 import scrollTo from '../../utils/ScrollTo';
+import MessageStyles from '../Message/Message.module.css';
 
 /**
  * Main chat application component.
@@ -34,9 +30,24 @@ const ChatApp = ({message , setMessage , messages , sendMessage}) => {
                 scrollTo(endBlockRef , {behavior: "smooth"});
         }
     }, [messages]);
+
+    const copyCode = async (code) => {
+        try {
+            await navigator.clipboard.writeText(code);
+            console.log('Code copied to clipboard');
+        } catch (err) {
+            console.error('Failed to copy code: ', err);
+        }
+    };
     
     return (
-        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`} ref={chatHistoryRef}>
+        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`} ref={chatHistoryRef} onClick={(event) => {
+            // if (event.target.classList.contains(MessageStyles.copyButton)) {
+            //     alert("Clicked!")
+            //     const code = event.target.dataset.code;
+            //     copyCode(code);
+            // }
+        }}>
             {/* Render the chat history, passing the messages array */}
             <ChatHistory messages={messages} endBlockRef={endBlockRef}/>
 

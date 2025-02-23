@@ -1,89 +1,118 @@
-import React, { useEffect, useRef, memo } from 'react';
-import styles from './Message.module.css';
-import showdown from 'showdown';
-import hljs from 'highlight.js';
-import 'highlight.js/styles/vs2015.min.css'; // Choose a theme
+import React, { memo, useState, useCallback } from "react";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/vs2015.min.css"; // Choose a theme
+import FileCopyOutlinedIcon from "@mui/icons-material/FileCopyOutlined";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import styles from "./Message.module.css";
+import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 
-/**
- * Component to render individual messages in the chat.
- * 
- * This component handles both user and admin messages. It uses the Showdown library
- * to convert Markdown content to HTML. Messages from the user are displayed with 
- * a different style compared to admin messages.
- * 
- * @param {Object} props - The props object.
- * @param {Object} props.message - The message object containing the role and content.
- * @param {string} props.message.role - The role of the message sender (e.g., "user" or "admin").
- * @param {string} props.message.content - The content of the message.
- * @returns {JSX.Element} The rendered Message component.
- */
 const Message = ({ message }) => {
-    const messageRef = useRef(null);
-
-    useEffect(() => {
-        if (messageRef.current) {
-            hljs.highlightAll();
-        }
-    }, [message.content]);
-
-    // Define the hljs extension for showdown
-    const hljsSetup = function(converter) {
-        return {
-            type: 'output',
-            filter: function (text, converter, options) {
-                // use new shodown's regexp engine to conditionally parse codeblocks
-                return text.replace(/<pre><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/gi, function (match, code) {
-                    let highlighted = hljs.highlightAuto(code).value;
-                    // Replace ampersands with their unescaped counterparts
-                    highlighted = highlighted.replace(/&amp;/g, '&');
-                    highlighted = highlighted.replace(/<;/g, '<').replace(/>;/g, '>');
-                    // alert(highlighted);
-                    return '<pre><code class="hljs">' + highlighted + '</code></pre>';
-                });
-            }
-        };
-    };
-
-    /**
-     * Converter instance to transform Markdown into HTML.
-     */
-    const converter = new showdown.Converter({
-        noHeaderId: true,
-        tables: true,
-        strikethrough: true,
-        tasklists: true,
-        simplifiedAutoLink: true,
-        extensions: [hljsSetup],
-        escapeHtml: false, // Disable HTML escaping
-        simpleLineBreaks: true, // Enable automatic line breaks
-    });
-
-    /**
-     * Converts the message content based on the sender's role.
-     * 
-     * @param {Object} messageObject - The message object containing the role and content.
-     * @returns {string} The processed message content, either as plain text or HTML.
-     */
-    const convert = ({ role, content }) => {
-        if (role === 'user') {
-            return content;
-        }
-
-        let messageContent = content;
-
-        // Remove semicolons after angle brackets
-        messageContent = messageContent.replace(/<;/g, '<').replace(/>;/g, '>');
-
-        return converter.makeHtml(messageContent);
-    };
-
     const { role, content } = message;
+    const [copied, setCopied] = useState(null); // Track copied code blocks
+
+    const handleCopy = useCallback(async (code, index) => {
+        navigator.clipboard.writeText(code);
+        setCopied(index);
+        setTimeout(() => setCopied(null), 2000);
+    }, []);
+
+    const extractCodeText = useCallback((children) => {
+        if (!children) return ""; // Handle undefined/null cases
+        if (typeof children === "string") return children; // If it's already a string, return it
+        if (!Array.isArray(children)) return extractCodeText([children]); // Wrap single elements in an array
+    
+        return children
+            .map(child => {
+                if (typeof child === "string") return child;
+                if (typeof child === "object" && child.props?.children) {
+                    return extractCodeText(child.props.children);
+                }
+                return "";
+            })
+            .join("")
+            .trim();
+    }, []);
+
+
+    /**
+     * Renders code blocks with syntax highlighting and copy button.
+     * - Applies only to **multi-line code blocks** inside `<pre>`.
+     */
+    const renderCodeBlock = useCallback(({ node, className, children, ...props }) => {
+        const isBlockCode = className !== undefined; // Block-level code has a class (e.g., `language-js`)
+        const language = className ? className.replace("language-", "") : "plaintext";
+        const code = extractCodeText(children);
+        console.log(code);
+        const index = node?.position?.start?.offset || Math.random(); // Unique key
+
+        if (!isBlockCode) {
+            return <code className={styles.inlineCode}>{children}</code>;
+        }
+        // alert(children)
+        return (
+            <div className={styles.codeBlockContainer}>
+                {/* Top Bar */}
+                <div className={styles.codeBlockHeader}>
+                    <span className={styles.codeBlockLanguage}>{language}</span>
+                    <button
+                        className={styles.copyButton}
+                        onClick={() => handleCopy(code, index)}
+                        style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s ease, background-color 0.2s ease',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.85rem',
+                            outline: 'none',
+                        }}
+                        onMouseOver={e => e.target.style.opacity = 1}
+                        onMouseOut={e => e.target.style.opacity = 0.7}
+                    >
+                        {copied === index ? (
+                            <>
+                            Copied
+                            <CheckCircleOutlinedIcon fontSize="small" />
+                            </>
+                        ) : (
+                            <>
+                            Copy
+                            <FileCopyOutlinedIcon fontSize="small" />
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                {/* Code Block */}
+                <pre className={styles.codeblock}>
+                    <code className={className} {...props}>
+                        {children}
+                    </code>
+                </pre>
+            </div>
+        );
+    }, [copied, handleCopy, extractCodeText]);
+
     return (
-        <div className={`${role === 'user' ? styles.mUser : styles.mAdmin} ${content === "Sorry, there was an error processing your request. Please try again." ? styles.mError : ""}`} ref={messageRef}>
-            {role === 'user' ? (
+        <div className={`${role === "user" ? styles.mUser : styles.mAdmin}`}>
+            {role === "user" ? (
                 <div>{content}</div>
             ) : (
-                <div dangerouslySetInnerHTML={{ __html: convert(message) }} />
+                <div>
+                    <Markdown
+                    rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                    components={{ code: renderCodeBlock }} // Use custom renderer
+                    >
+                        {content}
+                    </Markdown>
+                </div>
             )}
         </div>
     );

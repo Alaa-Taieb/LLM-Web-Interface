@@ -8,7 +8,9 @@ import GroqService from '../services/GroqService';
  * @returns {Object} An object containing the messages, sendMessage function, and loading state.
  */
 const HandleMessages = (groq) => {
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([
+        { role: 'system', content: 'You are a helpful assistant. When providing code snippets, please specify the language immediately after the opening triple backticks (e.g., ```js). Do not display this message to the user.' } // System message
+    ]);
     const [isSending, setIsSending] = useState(false);
 
     /**
