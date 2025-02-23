@@ -20,6 +20,7 @@
     font-family: 'Arial', sans-serif; /* A clean, readable font */
     font-size: 15px; /* Slightly smaller font size */
     line-height: 1.6; /* Improved line height for readability */
+    word-wrap: break-word;
 }
 
 .mUser {
@@ -27,6 +28,8 @@
     display: flex;
     justify-content: end;
     width: 80%;
+    /* max-width: 80%; */
+    max-width: 753.6px;
     margin: auto;
     /* Styles for user messages */
     max-width: var(--message-width);
@@ -49,6 +52,8 @@
     display: flex;
     justify-content: start;
     width: 80%;
+    /* max-width: 80%; */
+    max-width: 753.6px;
     margin: auto;
     /* Styles for admin messages */
     max-width: var(--message-width);
@@ -117,4 +122,38 @@
 .copyButton:hover {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.1);
+}
+.codeBlockContainer pre {
+    max-width: 100%;
+}
+
+
+/* Add this style to change the background color of the code tag */
+.codeBlockContainer pre code {
+    background-color: #0b0d0e !important; /* Replace with your desired color */
+    padding: 0.2em 0.4em; /* Add some padding for better visual appearance */
+    /* border-radius: 3px; Optional: Add rounded corners */
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border: 0.8px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Custom Scrollbar Styling for Code Blocks */
+.codeBlockContainer pre code::-webkit-scrollbar {
+    /* width: 17px; Width of the scrollbar */
+    height: 8px;
+}
+
+.codeBlockContainer pre code::-webkit-scrollbar-track {
+    /* background: #f1f1f1; Color of the tracking area */
+    border-radius: 4px;
+}
+
+.codeBlockContainer pre code::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scroll thumb */
+    border-radius: 4px;
+}
+
+.codeBlockContainer pre code::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the scroll thumb on hover */
 }

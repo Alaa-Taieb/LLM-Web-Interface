@@ -6,8 +6,11 @@ import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import styles from "./Message.module.css";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import hljs from "highlight.js";
+import langs from "../../utils/lang";
 
 const Message = ({ message }) => {
+    console.log(hljs.listLanguages().map(lang => `hljs ${lang}`));
     const { role, content } = message;
     const [copied, setCopied] = useState(null); // Track copied code blocks
 
@@ -54,7 +57,7 @@ const Message = ({ message }) => {
             <div className={styles.codeBlockContainer}>
                 {/* Top Bar */}
                 <div className={styles.codeBlockHeader}>
-                    <span className={styles.codeBlockLanguage}>{language}</span>
+                    <span className={styles.codeBlockLanguage}>{langs[`${language}`]}</span>
                     <button
                         className={styles.copyButton}
                         onClick={() => handleCopy(code, index)}

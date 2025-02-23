@@ -5,6 +5,7 @@
     position: absolute;
     background-color: red;
     bottom: 20px;
+
 }
 
 .chatHistory {
@@ -14,6 +15,8 @@
 .chatHistoryContainer {
     overflow: auto;
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     flex-grow: 1;
     /* border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */

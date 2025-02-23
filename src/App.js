@@ -25,14 +25,14 @@ function App() {
   const [minimized, setMinimized] = useState(false);
 
   return (
-    <Sheet component='div' sx={{ overflow: 'auto', height: '100vh', display: 'flex' }}> {/* Use flexbox for main layout */}
+    <Sheet component='div' sx={{ overflow: 'auto', height: '100vh', display: 'flex' , maxWidth: '100%'}}> {/* Use flexbox for main layout */}
       <GroqContext.Provider value={[groq, setGroq, groqObject, setGroqObject]}>
         <Modal open={openAPIFormModal}>
           <APIForm setOpenAPIFormModal={setOpenAPIFormModal} />
         </Modal>
         <SideBar minimized={minimized} setMinimized={setMinimized} />
-        <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}> {/* Messaging side takes remaining space */}
-          <Sheet sx={{ width: '100%', height: '100vh',padding: '5px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', flexGrow: 1 }} color='neutral' variant='soft'>
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, maxWidth: `calc(100% - ${minimized ? '40px' : '240px'})`, transition: 'max-width 0.3s ease' }}> {/* Messaging side takes remaining space */}
+          <Sheet sx={{maxWidth: '100%' ,width: '100%', height: '100vh',padding: '5px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', flexGrow: 1 }} color='neutral' variant='soft'>
             <Header />
             <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage} />
             <Footer setMessage={setMessage} sendMessage={sendMessage} message={message} isSending={isSending} setIsSending={setIsSending} />
