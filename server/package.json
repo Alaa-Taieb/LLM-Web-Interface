@@ -17,6 +17,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "groq-sdk": "^0.15.0",
+    "mongoose": "^8.10.1",
     "server": "file:"
   },
   "devDependencies": {

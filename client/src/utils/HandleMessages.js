@@ -1,17 +1,38 @@
-import { useState, useCallback } from 'react';
-import GroqService from '../services/GroqService';
+import { useState, useCallback, useEffect } from 'react';
 
 /**
  * Custom hook to manage chat messages and interaction with the Groq API.
  *
  * @param {Object} groq - The Groq API instance.
+ * @param {string} conversationId - The ID of the selected conversation.
  * @returns {Object} An object containing the messages, sendMessage function, and loading state.
  */
-const HandleMessages = (groq) => {
-    const [messages, setMessages] = useState([
-        { role: 'system', content: 'You are a helpful assistant. When providing code snippets, please specify the language immediately after the opening triple backticks (e.g., ```js). Do not display this message to the user.' } // System message
-    ]);
+const HandleMessages = (groq, conversationId) => {
+    const [messages, setMessages] = useState([]);
     const [isSending, setIsSending] = useState(false);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            console.log("Fetching messages for conversation:", conversationId); // Debugging statement
+            if (conversationId) {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/groq/messages/${conversationId}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log("Fetched messages:", data); // Debugging statement
+                    setMessages(data);
+                } catch (error) {
+                    console.error("Error fetching messages:", error);
+                }
+            } else {
+                setMessages([]); // Clear messages if no conversation is selected
+            }
+        };
+
+        fetchMessages();
+    }, [conversationId]);
 
     /**
      * Sends a message to the Groq API and updates the message history.
@@ -26,13 +47,58 @@ const HandleMessages = (groq) => {
         setMessages(prevMessages => [...prevMessages, { role: 'user', content: message }]);
 
         try {
-            await GroqService.sendMessage(groq, messages, message, setIsSending, setMessages);
+            const response = await fetch('http://localhost:5000/api/groq/sendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: { role: 'user', content: message }, // Send only the new message
+                    apiKey: groq.apiKey, // Access apiKey from groq object
+                    conversationId: conversationId, // Send the conversation ID
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullResponse = "";
+
+            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "" }]);
+
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) {
+                    setMessages(prevMessages => {
+                        let updated = [...prevMessages];
+                        updated[updated.length - 1] = { ...updated[updated.length - 1], done: true };
+                        return updated;
+                    });
+                    break;
+                }
+
+                const chunk = decoder.decode(value);
+                if (chunk !== `{"done": true}\n\n`) {
+                    fullResponse += chunk;
+                    setMessages(prevMessages => {
+                        let updated = [...prevMessages];
+                        updated[updated.length - 1] = { ...updated[updated.length - 1], content: fullResponse };
+                        return updated;
+                    });
+                }
+            }
+
+            setIsSending(false);
         } catch (error) {
             console.error("Error during streaming:", error);
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "Sorry, there was an error processing your request. Please try again." }]);
             setIsSending(false);
         }
-    }, [groq]);
+    }, [groq.apiKey, conversationId]);
 
     return { messages, sendMessage, isSending, setIsSending };
 };

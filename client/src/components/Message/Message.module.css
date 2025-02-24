@@ -23,6 +23,10 @@
     word-wrap: break-word;
 }
 
+.mAdmin > div {
+    width: 100%;
+}
+
 .mUser > div {
     background-color: #2F2F2F;
     border-radius: 30px;
@@ -86,6 +90,7 @@
 .codeBlockContainer pre {
     max-width: 100%;
     margin-top: 0;
+    width: 100%;
 }
 
 .codeBlockContainer pre code {
@@ -96,6 +101,7 @@
     border: 0.8px solid rgba(255, 255, 255, 0.15);
     overflow-x: auto; /* Enable horizontal scrolling */
     white-space: pre; /* Preserve whitespace and line breaks */
+    width: 100%;
 }
 
 /* Custom Scrollbar Styling for Code Blocks */

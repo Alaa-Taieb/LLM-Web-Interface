@@ -1,8 +1,9 @@
-import React, { useRef, useContext, useEffect } from 'react';
+import React, { useRef, useContext, useEffect, useState } from 'react';
 import ChatHistory from '../ChatHistory/ChatHistory';
 import styles from './ChatApp.module.css';
 import scrollTo from '../../utils/ScrollTo';
 import MessageStyles from '../Message/Message.module.css';
+import HandleMessages from '../../utils/HandleMessages';
 
 /**
  * Main chat application component.
@@ -13,7 +14,7 @@ import MessageStyles from '../Message/Message.module.css';
  * 
  * @returns {JSX.Element} The rendered ChatApp component.
  */
-const ChatApp = ({message , setMessage , messages , sendMessage}) => {
+const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversationId }) => {
     // Reference to the end of the chat history, used for auto-scrolling
     const endBlockRef = useRef();
     const chatHistoryRef = useRef(null);
@@ -27,19 +28,10 @@ const ChatApp = ({message , setMessage , messages , sendMessage}) => {
         const chatHistory = chatHistoryRef.current;
 
         if (chatHistory) {
-                scrollTo(endBlockRef , {behavior: "smooth"});
+            scrollTo(endBlockRef, { behavior: "smooth" });
         }
     }, [messages]);
 
-    const copyCode = async (code) => {
-        try {
-            await navigator.clipboard.writeText(code);
-            console.log('Code copied to clipboard');
-        } catch (err) {
-            console.error('Failed to copy code: ', err);
-        }
-    };
-    
     return (
         <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`} ref={chatHistoryRef} onClick={(event) => {
             // if (event.target.classList.contains(MessageStyles.copyButton)) {
@@ -49,7 +41,7 @@ const ChatApp = ({message , setMessage , messages , sendMessage}) => {
             // }
         }}>
             {/* Render the chat history, passing the messages array */}
-            <ChatHistory messages={messages} endBlockRef={endBlockRef}/>
+            <ChatHistory messages={messages} endBlockRef={endBlockRef} />
 
             {/* Spacer div to add some space before the input field */}
             <div ref={endBlockRef}></div>
@@ -61,5 +53,3 @@ const ChatApp = ({message , setMessage , messages , sendMessage}) => {
 }
 
 export default ChatApp;
-
-

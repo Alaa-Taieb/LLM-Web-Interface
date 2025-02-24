@@ -12,35 +12,41 @@ import HandleMessages from './utils/HandleMessages';
 import Groq from 'groq-sdk';
 
 function App() {
-  const { mode, setMode } = useColorScheme();
-  setMode("dark");
-  const [groq, setGroq] = useState({ apiKey: "", dangerouslyAllowBrowser: true });
-  const [openAPIFormModal, setOpenAPIFormModal] = useState(true);
-  const [message, setMessage] = useState("");
-  const { messages, sendMessage, isSending, setIsSending } = HandleMessages(new Groq(groq));
-  useEffect(() => {
-    setOpenAPIFormModal(groq.apiKey === "");
-  }, [groq.apiKey]);
-  const [groqObject, setGroqObject] = useState();
-  const [minimized, setMinimized] = useState(false);
+    const { mode, setMode } = useColorScheme();
+    setMode("dark");
+    const [groq, setGroq] = useState({ apiKey: "", dangerouslyAllowBrowser: true });
+    const [openAPIFormModal, setOpenAPIFormModal] = useState(true);
+    const [message, setMessage] = useState("");
+    const [selectedConversationId, setSelectedConversationId] = useState(null);
+    const { messages, sendMessage, isSending, setIsSending } = HandleMessages(new Groq(groq), selectedConversationId);
+    useEffect(() => {
+        setOpenAPIFormModal(groq.apiKey === "");
+    }, [groq.apiKey]);
+    const [groqObject, setGroqObject] = useState();
+    const [minimized, setMinimized] = useState(false);
 
-  return (
-    <Sheet component='div' sx={{ overflow: 'auto', height: '100vh', display: 'flex' , maxWidth: '100%'}}> {/* Use flexbox for main layout */}
-      <GroqContext.Provider value={[groq, setGroq, groqObject, setGroqObject]}>
-        <Modal open={openAPIFormModal}>
-          <APIForm setOpenAPIFormModal={setOpenAPIFormModal} />
-        </Modal>
-        <SideBar minimized={minimized} setMinimized={setMinimized} />
-        <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, maxWidth: `calc(100% - ${minimized ? '40px' : '240px'})`, transition: 'max-width 0.3s ease' }}> {/* Messaging side takes remaining space */}
-          <Sheet sx={{maxWidth: '100%' ,width: '100%', height: '100vh',padding: '5px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', flexGrow: 1 }} color='neutral' variant='soft'>
-            <Header />
-            <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage} />
-            <Footer setMessage={setMessage} sendMessage={sendMessage} message={message} isSending={isSending} setIsSending={setIsSending} />
-          </Sheet>
-        </Box>
-      </GroqContext.Provider>
-    </Sheet>
-  );
+    const handleConversationSelect = (conversationId) => {
+        console.log("Conversation selected in App:", conversationId); // Debugging statement
+        setSelectedConversationId(conversationId);
+    };
+
+    return (
+        <Sheet component='div' sx={{ overflow: 'auto', height: '100vh', display: 'flex' , maxWidth: '100%'}}> {/* Use flexbox for main layout */}
+        <GroqContext.Provider value={[groq, setGroq, groqObject, setGroqObject]}>
+            <Modal open={openAPIFormModal}>
+            <APIForm setOpenAPIFormModal={setOpenAPIFormModal} />
+            </Modal>
+            <SideBar minimized={minimized} setMinimized={setMinimized} onConversationSelect={handleConversationSelect} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, maxWidth: `calc(100% - ${minimized ? '40px' : '240px'})`, transition: 'max-width 0.3s ease' }}> {/* Messaging side takes remaining space */}
+            <Sheet sx={{maxWidth: '100%' ,width: '100%', height: '100vh',padding: '5px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', flexGrow: 1 }} color='neutral' variant='soft'>
+                <Header />
+                <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage} selectedConversationId={selectedConversationId} />
+                <Footer setMessage={setMessage} sendMessage={sendMessage} message={message} isSending={isSending} setIsSending={setIsSending} />
+            </Sheet>
+            </Box>
+        </GroqContext.Provider>
+        </Sheet>
+    );
 }
 
 export default App;

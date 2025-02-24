@@ -2,10 +2,14 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const groqRoutes = require('./routes/groqRoutes');
-
-// --- Configuration ---
 dotenv.config();
+const groqRoutes = require('./routes/groqRoutes');
+// const connectDB = require('./config/database'); // Import the database connection function
+require('./config/database.config.js');
+// --- Configuration ---
+
+// --- Connect to Database ---
+// connectDB(); // Connect to MongoDB
 
 // --- Express App ---
 const app = express();
