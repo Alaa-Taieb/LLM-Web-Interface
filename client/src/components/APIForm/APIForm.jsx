@@ -1,4 +1,5 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
+import React, { forwardRef } from 'react';
 import GroqContext from '../GroqContext';
 import styles from './APIForm.module.css';
 import Groq from 'groq-sdk';
@@ -24,21 +25,6 @@ import APIKeyTutorial from '../APIKeyTutorial/APIKeyTutorial';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 
-
-/**
- * This function is used to fetch completion suggestions from the Groq AI model using their public APIs.
- * 
- * @param {Groq} groq - An instance of the Groq SDK, initialized with the user's API key.
- * @returns {Promise<any>} - A Promise that resolves to the completion suggestions from the Groq AI model.
- * 
- * @throws Will throw an error if the Groq API request fails or if the API key is invalid.
- * 
- * @example
- * const g = new Groq({ apiKey: 'your_api_key', dangerouslyAllowBrowser: true });
- * getGroqChatCompletion(g)
- *   .then(response => console.log(response))
- *   .catch(error => console.error(error));
- */
 export async function getGroqChatCompletion(groq) {
     return groq.chat.completions.create({
         messages: [
@@ -51,37 +37,13 @@ export async function getGroqChatCompletion(groq) {
     });
 }
 
-/**
- * This functional component represents a form for setting up an API key for the Groq AI model.
- * It includes a step-by-step guide on how to obtain an API key, input field for the API key,
- * and buttons for verifying and saving the API key.
- *
- * @returns {React.ReactElement} - The rendered component.
- */
-const APIForm = ({setOpenAPIFormModal}) => {
-
-    // State variable to track the validity of the API key. Initially set to false.
+const APIForm = forwardRef(({ onClose, ...props }, ref) => {
     const [APIValid, setAPIValid] = useState("false");
-
-    // State variable to track any error messages related to the API key. Initially set to an empty string.
     const [error, setError] = useState("");
-
-    // State variable to track whether the tutorial modal is open or closed. Initially set to false.
     const [tutorialOpen, setTutorialOpen] = useState(false);
-
-    // State for managing the API key input by the user
     const [apiKey, setApiKey] = useState("");
-
-    // Access and destructure Groq-related state and updater functions from the GroqContext
     const [groq, setGroq, , setGroqObject] = useContext(GroqContext);
 
-    /**
-     * Function to verify the API key by making a request to the Groq API and updating the state variables accordingly.
-     * 
-     * @function verifyAPIKey
-     * 
-     * @returns {void}
-     */
     const verifyAPIKey = () => {
         const g = new Groq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
         getGroqChatCompletion(g)
@@ -92,20 +54,14 @@ const APIForm = ({setOpenAPIFormModal}) => {
             })
     }
 
-    // Effect to initialize the Groq object when the groq state changes
-    useState(() => {
+    useEffect(() => {
         setGroqObject(new Groq(groq));
     }, [groq])
 
-    /**
-     * Handles form submission to update the Groq context with the provided API key.
-     * 
-     * @param {React.FormEvent} e - The form submission event.
-     */
     const handleSubmit = (e) => {
         e.preventDefault();
         setGroq({ ...groq, apiKey: apiKey });
-        setOpenAPIFormModal(false);
+        onClose(); // Changed from setOpenAPIFormModal(false) to use the passed onClose prop
     }
 
     return (
@@ -114,11 +70,7 @@ const APIForm = ({setOpenAPIFormModal}) => {
                 orientation="horizontal"
                 variant="soft"
                 color='neutral'
-                sx={
-                    {
-                        width: 700
-                    }
-                }
+                sx={{ width: 700 }}
             >
                 <CardOverflow>
                     <AspectRatio ratio={100/465} sx={{ width: 100, height: 465 }}>
@@ -193,23 +145,19 @@ const APIForm = ({setOpenAPIFormModal}) => {
                         <Grid container>
                             <Grid xs={12}>
                                 <form onSubmit={handleSubmit}>
-                                    <FormControl error={error}>
-                                        {/* <FormLabel>API Key</FormLabel> */}
+                                    <FormControl error={Boolean(error)}>
                                         <Input 
-                                        type='password' 
-                                        name='api_key' 
-                                        color={APIValid == "true" ? 'success' : APIValid == "false" ? 'neutral' : "neutral"} 
-                                        size='md' 
-                                        placeholder='Insert your API Key here ...' 
-                                        onChange={e => 
-                                            {
+                                            type='password' 
+                                            name='api_key' 
+                                            color={APIValid == "true" ? 'success' : APIValid == "false" ? 'neutral' : "neutral"} 
+                                            size='md' 
+                                            placeholder='Insert your API Key here ...' 
+                                            onChange={e => {
                                                 setApiKey(e.target.value);
                                                 if (APIValid == "true")
                                                     setAPIValid("false")
-                                            }
-                                        } 
-                                        endDecorator=
-                                            {
+                                            }} 
+                                            endDecorator={
                                                 <>
                                                     {
                                                         (APIValid == "false") || (APIValid == "checking") ?
@@ -217,30 +165,29 @@ const APIForm = ({setOpenAPIFormModal}) => {
                                                                 <CheckCircleOutlineOutlinedIcon />
                                                             </IconButton>
                                                         : APIValid == "true" ?
-                                                        <Button type='submit' startDecorator={<SaveOutlinedIcon />}>
-                                                            Save
-                                                        </Button>
+                                                            <Button type='submit' startDecorator={<SaveOutlinedIcon />}>
+                                                                Save
+                                                            </Button>
                                                         : ""
                                                     }
                                                 </>
                                             } 
                                         />
-                                        {error ?
+                                        {error &&
                                             <FormHelperText>
                                                 <InfoOutlinedIcon />
                                                 {error}
-                                            </FormHelperText> :
-                                            ""
+                                            </FormHelperText>
                                         }
                                     </FormControl>
                                 </form>
                             </Grid>
                         </Grid>
                     </CardContent>
-
                 </CardContent>
             </Card>
         </div>
-    )
-}
+    );
+});
+
 export default APIForm;

@@ -78,6 +78,28 @@ const HandleMessages = (groq, conversationId) => {
                         updated[updated.length - 1] = { ...updated[updated.length - 1], done: true };
                         return updated;
                     });
+                    
+                    // Fetch updated conversation name after streaming is complete
+                    try {
+                        const nameResponse = await fetch(`http://localhost:5000/api/groq/conversations/${conversationId}`);
+                        if (nameResponse.ok) {
+                            const data = await nameResponse.json();
+                            console.log('Fetched new conversation name:', data.name); // Debug log
+                            
+                            // Dispatch event with the updated name
+                            const event = new CustomEvent('conversationNameUpdated', {
+                                detail: { 
+                                    id: conversationId, 
+                                    name: data.name,
+                                    updatedAt: new Date().toISOString() // Add updatedAt timestamp
+                                }
+                            });
+                            console.log('Dispatching event with data:', event.detail); // Debug log
+                            window.dispatchEvent(event);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching updated conversation name:", error);
+                    }
                     break;
                 }
 

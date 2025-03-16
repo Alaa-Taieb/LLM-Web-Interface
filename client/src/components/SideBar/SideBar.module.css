@@ -1,14 +1,56 @@
 .conversationList {
     list-style: none;
-    padding: 0;
+    padding: 8px;
     margin: 0;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden; /* Add this to prevent horizontal scroll */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150, 150, 150, 0.8) transparent;
+    height: calc(100vh - 48px); /* Adjust for header height */
+}
+
+.conversationList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.conversationList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.conversationList::-webkit-scrollbar-thumb {
+    background-color: rgba(150, 150, 150, 0.8);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.conversationList::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(150, 150, 150, 1);
 }
 
 .conversationItem {
     padding: 8px 16px;
     cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    margin-bottom: 4px;
 }
 
 .conversationItem:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sectionTitle {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0 8px;
+    margin: 16px 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.divider {
+    margin: 12px 0;
+    border-color: rgba(255, 255, 255, 0.1);
 }

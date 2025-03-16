@@ -14,6 +14,12 @@ router.post('/sendMessage', groqController.sendMessage);
 // Define the route for getting all conversations
 router.get('/conversations', conversationController.getConversations);
 
+// New route to create a conversation
+router.post('/conversations', conversationController.createConversation);
+
+// New route to get a conversation by ID
+router.get('/conversations/:id', conversationController.getConversationById);
+
 router.get('/messages/:conversationId', messageController.getMessagesByConversation);
 
 module.exports = router;
