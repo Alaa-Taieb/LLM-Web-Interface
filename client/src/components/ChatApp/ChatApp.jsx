@@ -21,14 +21,49 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showNewConversation, setShowNewConversation] = useState(true);
     const [isVisible, setIsVisible] = useState(true); // New state for controlling visibility
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-    // Check if the last message is still streaming
+    // Handle initial conversation switching
     useEffect(() => {
-        if (messages.length > 0) {
-            const lastMessage = messages[messages.length - 1];
-            setIsStreaming(lastMessage.role === 'assistant' && !lastMessage.completed);
+        if (selectedConversationId) {
+            setIsLoadingMessages(true);
+            const timer = setTimeout(() => {
+                if (messages && messages.length > 0) {
+                    setShowNewConversation(false);
+                    setIsVisible(false);
+                }
+                setIsLoadingMessages(false);
+            }, 300); // Increased delay slightly for smoother transition
+            return () => clearTimeout(timer);
         }
-    }, [messages]);
+    }, [selectedConversationId, messages]);
+
+    // Handle messages state with smoother transitions
+    useEffect(() => {
+        let timer;
+        if (messages && messages.length > 0) {
+            setShowNewConversation(false);
+            setIsVisible(false);
+            setIsLoading(false);
+            setIsLoadingMessages(false);
+        } else if (selectedConversationId && (!messages || messages.length === 0)) {
+            if (!isLoadingMessages) {
+                // Add a small delay before showing the new conversation UI
+                timer = setTimeout(() => {
+                    setShowNewConversation(true);
+                    setIsVisible(true);
+                    setIsLoading(false);
+                }, 200);
+            }
+        } else if (!selectedConversationId) {
+            setShowNewConversation(true);
+            setIsVisible(true);
+            setIsLoading(false);
+            setIsLoadingMessages(false);
+        }
+        return () => clearTimeout(timer);
+    }, [messages, selectedConversationId, isLoadingMessages]);
 
     // Debounced scroll function
     const debouncedScrollToBottom = useMemo(
@@ -83,25 +118,6 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         }
     }, [messages, isStreaming, shouldAutoScroll, debouncedScrollToBottom]);
 
-    useEffect(() => {
-        if (selectedConversationId && messages && messages.length > 0) {
-            handleNewConversationHide();
-        } else if (!selectedConversationId || messages.length === 0) {
-            setShowNewConversation(true);
-            setIsVisible(true);
-        }
-    }, [selectedConversationId, messages]);
-
-    // New function to handle hiding the new conversation UI
-    const handleNewConversationHide = () => {
-        setIsTransitioning(true);
-        setIsVisible(false);
-        setTimeout(() => {
-            setShowNewConversation(false);
-            setIsTransitioning(false);
-        }, 300); // Match this with the animation duration in CSS
-    };
-
     const handleSuggestionClick = (prompt) => {
         setIsTransitioning(true);
         setIsVisible(false);
@@ -149,7 +165,11 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
 
     return (
         <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`}>
-            {showNewConversation ? (
+            {isLoadingMessages ? (
+                <div className={styles.loadingContainer}>
+                    <div className={styles.spinner}></div>
+                </div>
+            ) : showNewConversation ? (
                 <div className={styles.newConversation}>
                     <div className={`
                         ${styles.newConversationContainer} 
