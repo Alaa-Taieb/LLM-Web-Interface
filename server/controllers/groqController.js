@@ -25,13 +25,47 @@ const groqController = {
             }
             
             if (!conversation) {
-                // Create new conversation
                 conversation = new Conversation({
                     name: 'New Conversation',
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });
                 await conversation.save();
+            }
+
+            // If this is the first message and conversation name is default, generate a name
+            if (conversation.name === 'New Conversation') {
+                const nameGenerationPrompt = {
+                    role: 'system',
+                    content: 'Generate a brief, descriptive title (max 50 chars) for a conversation that starts with this message. Respond with ONLY the title, no quotes or extra text.'
+                };
+
+                try {
+                    const nameResponse = await groqService.sendMessage([nameGenerationPrompt, message], apiKey);
+                    let generatedName = '';
+                    for await (const chunk of nameResponse) {
+                        generatedName += chunk.choices[0]?.delta?.content || '';
+                    }
+                    
+                    generatedName = generatedName.trim();
+                    if (generatedName) {
+                        conversation.name = generatedName;
+                        conversation.updatedAt = new Date();
+                        await conversation.save();
+
+                        // Send the name update as a separate event
+                        const updateEvent = JSON.stringify({
+                            type: 'nameUpdate',
+                            id: conversation._id,
+                            name: generatedName,
+                            updatedAt: conversation.updatedAt
+                        });
+                        res.write(`${updateEvent}\n\n`);
+                    }
+                } catch (error) {
+                    console.error("Error generating conversation name:", error);
+                    // Continue with message processing even if name generation fails
+                }
             }
 
             // Fetch previous messages
