@@ -100,22 +100,31 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
 
     const fetchConversationName = async (conversationId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/groq/conversations/${conversationId}`);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`http://localhost:5000/api/groq/conversations/${conversationId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
 
-            setConversations(prevConversations => {
-                return prevConversations.map(conversation => {
-                    if (conversation._id === conversationId) {
-                        return { ...conversation, name: data.name };
-                    }
-                    return conversation;
-                });
-            });
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error("Error fetching conversation name:", error);
+            // Handle token expiration
+            if (error.message.includes('401')) {
+                // Redirect to login or refresh token
+                window.location.href = '/login';
+            }
         }
     };
 

@@ -73,36 +73,38 @@ const ChatComponent = () => {
 
                         if (keyResponse.ok) {
                             const { key } = await keyResponse.json();
-                            try {
-                                const groqInstance = new Groq({ 
-                                    apiKey: key, 
-                                    dangerouslyAllowBrowser: true 
-                                });
-                                // Test the instance
-                                await groqInstance.chat.completions.create({
-                                    messages: [{ role: "user", content: "test" }],
-                                    model: "llama3-70b-8192",
-                                });
-                                setGroq(groqInstance);
-                                setOpenAPIFormModal(false);
-                            } catch (groqError) {
-                                console.error('Invalid Groq API key:', groqError);
-                                setOpenAPIFormModal(true);
+                            if (!key) {
+                                throw new Error('No API key found');
                             }
+
+                            const groqInstance = new Groq({ 
+                                apiKey: key, 
+                                dangerouslyAllowBrowser: true 
+                            });
+
+                            // Store the API key in the config
+                            groqInstance.config = { apiKey: key };
+                            
+                            // Test the instance
+                            await groqInstance.chat.completions.create({
+                                messages: [{ role: "user", content: "test" }],
+                                model: "llama3-70b-8192",
+                            });
+
+                            console.log('Groq instance initialized successfully');
+                            setGroq(groqInstance);
+                            setOpenAPIFormModal(false);
                         } else {
-                            console.error('Failed to fetch API key value');
-                            setOpenAPIFormModal(true);
+                            throw new Error('Failed to fetch API key value');
                         }
                     } else {
-                        console.log('No valid API keys found');
-                        setOpenAPIFormModal(true);
+                        throw new Error('No valid API keys found');
                     }
                 } else {
-                    console.error('Failed to fetch API keys');
-                    setOpenAPIFormModal(true);
+                    throw new Error('Failed to fetch API keys');
                 }
             } catch (error) {
-                console.error('Error checking for API keys:', error);
+                console.error('Error initializing Groq:', error);
                 setOpenAPIFormModal(true);
             }
         };
@@ -112,6 +114,14 @@ const ChatComponent = () => {
 
     const handleMessageSend = async (messageContent) => {
         if (!messageContent.trim()) return;
+        
+        console.log('Sending message:', {
+            content: messageContent,
+            conversationId: selectedConversationId,
+            hasGroq: !!groq,
+            hasApiKey: !!(groq?.config?.apiKey || groq?.apiKey)
+        });
+        
         await sendMessage(messageContent);
     };
 

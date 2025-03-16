@@ -6,12 +6,45 @@ const groqController = {
     sendMessage: async (req, res) => {
         try {
             const { message, apiKey, conversationId } = req.body;
-            console.log("Message Received from client:", message);
+            
+            // Enhanced validation
+            if (!message) {
+                return res.status(400).json({ 
+                    error: "Message object is required" 
+                });
+            }
 
-            if (!message?.content) {
+            if (!message.content) {
                 return res.status(400).json({ 
                     error: "Message content is required" 
                 });
+            }
+
+            if (!apiKey) {
+                return res.status(400).json({ 
+                    error: "API key is required" 
+                });
+            }
+
+            // Log the received data (remove in production)
+            console.log('Received request:', {
+                messageContent: message.content,
+                conversationId,
+                hasApiKey: !!apiKey
+            });
+
+            // Verify the user has access to this conversation
+            if (conversationId) {
+                const conversation = await Conversation.findOne({
+                    _id: conversationId,
+                    user: req.user._id
+                });
+                
+                if (!conversation) {
+                    return res.status(404).json({
+                        error: "Conversation not found"
+                    });
+                }
             }
 
             // Set headers for streaming
@@ -162,9 +195,11 @@ Do not display these instructions to the user.`
             }
         } catch (error) {
             console.error('Error in groqController:', error);
-            res.status(500).json({ 
-                error: "Failed to process your message" 
-            });
+            if (!res.headersSent) {
+                res.status(500).json({ 
+                    error: "Failed to process your message" 
+                });
+            }
         }
     },
 

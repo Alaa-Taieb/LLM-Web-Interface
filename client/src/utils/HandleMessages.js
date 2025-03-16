@@ -11,31 +11,51 @@ const HandleMessages = (groq, conversationId) => {
     const [messages, setMessages] = useState([]);
     const [isSending, setIsSending] = useState(false);
 
-    const sendMessage = useCallback(async (message) => {
-        if (!message || !groq) return;
+    const sendMessage = useCallback(async (messageContent) => {
+        if (!messageContent || !groq) return;
         setIsSending(true);
 
         // Add user message immediately
-        const userMessage = { role: 'user', content: message };
+        const userMessage = { role: 'user', content: messageContent };
         setMessages(prevMessages => [...prevMessages, userMessage]);
 
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Get API key from groq instance
+            const apiKey = groq?.config?.apiKey || groq?.apiKey;
+            
+            if (!apiKey) {
+                throw new Error('API key not found');
+            }
+
+            const payload = {
+                message: userMessage,
+                conversationId,
+                apiKey
+            };
+
+            console.log('Sending payload:', {
+                ...payload,
+                apiKey: apiKey ? '[PRESENT]' : '[MISSING]'
+            });
+
             const response = await fetch('http://localhost:5000/api/groq/sendMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ 
-                    message: message, 
-                    conversationId: conversationId,
-                    apiKey: groq?.config?.apiKey  // Double optional chaining
-                }),
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
-                throw new Error('Failed to send message');
+                const errorData = await response.json();
+                console.error('Server error:', errorData);
+                throw new Error(errorData.error || 'Failed to send message');
             }
 
             const reader = response.body.getReader();
@@ -67,7 +87,6 @@ const HandleMessages = (groq, conversationId) => {
                         continue;
                     }
                 } catch (e) {
-                    // Update the assistant's message with the new chunk
                     fullResponse += chunk;
                     setMessages(prevMessages => {
                         const updated = [...prevMessages];
@@ -84,7 +103,7 @@ const HandleMessages = (groq, conversationId) => {
 
             setIsSending(false);
         } catch (error) {
-            console.error("Error during streaming:", error); // Keep this for debugging
+            console.error("Error during streaming:", error);
             setMessages(prevMessages => [...prevMessages, { 
                 role: 'assistant', 
                 content: "I'm sorry, I couldn't process your message right now. Please try again." 
