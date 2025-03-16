@@ -43,6 +43,17 @@
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: rgba(150, 150, 150, 0.8) transparent;
+    position: relative;
+    /* height: calc(100vh - 160px); */
+    /* margin-bottom: 20px; */
+    contain: paint; /* Add this to improve scrolling performance */
+    will-change: transform; /* Add this to optimize for animations */
+}
+
+/* Ensure messages have a minimum height to prevent layout shifts */
+.message {
+    min-height: 20px;
+    contain: content;
 }
 
 /* Webkit scrollbar styling */
