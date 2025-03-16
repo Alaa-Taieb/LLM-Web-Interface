@@ -20,6 +20,26 @@ router.post('/conversations', conversationController.createConversation);
 // New route to get a conversation by ID
 router.get('/conversations/:id', conversationController.getConversationById);
 
+// Add the DELETE route for conversations
+router.delete('/conversations/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedConversation = await Conversation.findByIdAndDelete(id);
+        
+        if (!deletedConversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+        
+        // Also delete all messages associated with this conversation
+        await Message.deleteMany({ conversation: id });
+        
+        res.status(200).json({ message: 'Conversation and associated messages deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting conversation:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/messages/:conversationId', messageController.getMessagesByConversation);
 
 module.exports = router;

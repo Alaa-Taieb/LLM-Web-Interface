@@ -1,10 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { IconButton, Sheet, List, ListItem, Typography, Box, Divider } from '@mui/joy';
+import { 
+    IconButton, 
+    Sheet, 
+    List, 
+    ListItem, 
+    Typography, 
+    Box, 
+    Divider, 
+    Menu, 
+    MenuItem, 
+    Modal,
+    Button 
+} from '@mui/joy';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined'; // Paper icon
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styles from './SideBar.module.css';
+import DropdownMenu from '../DropdownMenu/DropdownMenu';
 
 /**
  * Component to render the sidebar with minimize/maximize functionality and conversation list.
@@ -22,6 +36,10 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
     const [recentConversations, setRecentConversations] = useState([]);
     const [last24HoursConversations, setLast24HoursConversations] = useState([]);
     const [historyConversations, setHistoryConversations] = useState([]);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [menuConversationId, setMenuConversationId] = useState(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [conversationToDelete, setConversationToDelete] = useState(null);
 
     const fetchConversations = async () => {
         try {
@@ -208,6 +226,54 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         console.log('Conversations state updated:', conversations); // Debug log
     }, [conversations]);
 
+    const handleGearClick = (e, conversationId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setAnchorEl(e.currentTarget);
+        setMenuConversationId(conversationId);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+        setMenuConversationId(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        try {
+            if (!conversationToDelete) {
+                console.error("No conversation ID to delete");
+                return;
+            }
+
+            console.log("Attempting to delete conversation:", conversationToDelete);
+            const response = await fetch(`http://localhost:5000/api/groq/conversations/${conversationToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Refresh conversations list
+            await fetchConversations();
+            
+            // If deleted conversation was selected, clear selection
+            if (conversationToDelete === selectedConversationId) {
+                setSelectedConversationId(null);
+            }
+            
+            console.log("Successfully deleted conversation");
+        } catch (error) {
+            console.error("Error deleting conversation:", error);
+        }
+        setDeleteModalOpen(false);
+        setConversationToDelete(null);
+        handleCloseMenu();
+    };
+
     // Common styles that can be reused for all sections
     const conversationItemStyles = {
         padding: '6px 0px 6px 8px', // Removed left padding, kept others
@@ -246,6 +312,62 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
             borderRadius: '6px',
         },
     };
+
+    const renderConversationItem = (conversation) => (
+        <ListItem
+            key={conversation._id}
+            sx={conversationItemStyles}
+            onClick={() => handleConversationClick(conversation._id)}
+        >
+            <Box sx={{ 
+                width: '100%', 
+                display: 'flex', 
+                alignItems: 'center',
+                position: 'relative',
+                pr: '36px',
+            }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    width: '100%',
+                }}>
+                    <DescriptionOutlined sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)' }} />
+                    <Typography sx={{
+                        fontSize: "14px",
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flex: 1,
+                    }}>
+                        {conversation.name}
+                    </Typography>
+                </Box>
+                <IconButton 
+                    size="sm" 
+                    variant="plain" 
+                    sx={gearButtonStyles}
+                    onClick={(e) => handleGearClick(e, conversation._id)}
+                >
+                    <SettingsOutlinedIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+            </Box>
+        </ListItem>
+    );
+
+    const menuItems = [
+        {
+            label: 'Delete',
+            icon: <DeleteOutlineIcon />,
+            onClick: () => {
+                setConversationToDelete(menuConversationId);
+                setDeleteModalOpen(true);
+            },
+            color: 'danger.plainColor',
+            hoverBg: 'danger.softBg'
+        }
+    ];
 
     return (
         <Sheet 
@@ -302,169 +424,65 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                     <Typography level="body-xs" sx={{ px: 1, py: 1, color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Most Recent
                     </Typography>
-                    {recentConversations.map((conversation) => (
-                        <ListItem
-                            key={conversation._id}
-                            sx={conversationItemStyles}
-                            onClick={() => handleConversationClick(conversation._id)}
-                        >
-                            <Box sx={{ 
-                                width: '100%', 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                position: 'relative',
-                                pr: '36px', // Adjusted to match new positioning (32px button + 2px right + 2px gap)
-                            }}>
-                                <Box sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: 1,
-                                    width: '100%',
-                                }}>
-                                    <DescriptionOutlined sx={{ 
-                                        fontSize: 18, 
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        flexShrink: 0
-                                    }} />
-                                    <Typography 
-                                        sx={{
-                                            fontSize: "14px",
-                                            color: 'rgba(255, 255, 255, 0.9)',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {conversation.name}
-                                    </Typography>
-                                </Box>
-                                <IconButton 
-                                    size="sm" 
-                                    variant="plain" 
-                                    sx={gearButtonStyles}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Add settings handler
-                                    }}
-                                >
-                                    <SettingsOutlinedIcon sx={{ fontSize: 16 }} />
-                                </IconButton>
-                            </Box>
-                        </ListItem>
-                    ))}
+                    {recentConversations.map(renderConversationItem)}
                     <Divider sx={{ my: 2, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
                     <Typography level="body-xs" sx={{ px: 1, py: 1, color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Last 24 Hours
                     </Typography>
-                    {last24HoursConversations.map((conversation) => (
-                        <ListItem
-                            key={conversation._id}
-                            sx={conversationItemStyles}
-                            onClick={() => handleConversationClick(conversation._id)}
-                        >
-                            <Box sx={{ 
-                                width: '100%', 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                position: 'relative',
-                                pr: '36px', // Adjusted to match new positioning (32px button + 2px right + 2px gap)
-                            }}>
-                                <Box sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: 1,
-                                    width: '100%',
-                                }}>
-                                    <DescriptionOutlined sx={{ 
-                                        fontSize: 18, 
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        flexShrink: 0
-                                    }} />
-                                    <Typography 
-                                        sx={{
-                                            fontSize: "14px",
-                                            color: 'rgba(255, 255, 255, 0.9)',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {conversation.name}
-                                    </Typography>
-                                </Box>
-                                <IconButton 
-                                    size="sm" 
-                                    variant="plain" 
-                                    sx={gearButtonStyles}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Add settings handler
-                                    }}
-                                >
-                                    <SettingsOutlinedIcon sx={{ fontSize: 16 }} />
-                                </IconButton>
-                            </Box>
-                        </ListItem>
-                    ))}
+                    {last24HoursConversations.map(renderConversationItem)}
                     <Divider sx={{ my: 2, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
                     <Typography level="body-xs" sx={{ px: 1, py: 1, color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         History
                     </Typography>
-                    {historyConversations.map((conversation) => (
-                        <ListItem
-                            key={conversation._id}
-                            sx={conversationItemStyles}
-                            onClick={() => handleConversationClick(conversation._id)}
-                        >
-                            <Box sx={{ 
-                                width: '100%', 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                position: 'relative',
-                                pr: '36px', // Adjusted to match new positioning (32px button + 2px right + 2px gap)
-                            }}>
-                                <Box sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: 1,
-                                    width: '100%',
-                                }}>
-                                    <DescriptionOutlined sx={{ 
-                                        fontSize: 18, 
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        flexShrink: 0
-                                    }} />
-                                    <Typography 
-                                        sx={{
-                                            fontSize: "14px",
-                                            color: 'rgba(255, 255, 255, 0.9)',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {conversation.name}
-                                    </Typography>
-                                </Box>
-                                <IconButton 
-                                    size="sm" 
-                                    variant="plain" 
-                                    sx={gearButtonStyles}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Add settings handler
-                                    }}
-                                >
-                                    <SettingsOutlinedIcon sx={{ fontSize: 16 }} />
-                                </IconButton>
-                            </Box>
-                        </ListItem>
-                    ))}
+                    {historyConversations.map(renderConversationItem)}
                 </List>
             )}
+            <DropdownMenu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+                menuItems={menuItems}
+                placement="bottom-end"
+            />
+
+            <Modal
+                open={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+                <Sheet
+                    variant="outlined"
+                    sx={{
+                        maxWidth: 400,
+                        borderRadius: 'md',
+                        p: 3,
+                        boxShadow: 'lg',
+                    }}
+                >
+                    <Typography level="h4" mb={2}>
+                        Delete Conversation
+                    </Typography>
+                    <Typography mb={3}>
+                        Are you sure you want to delete this conversation? This action cannot be undone.
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <Button
+                            variant="plain"
+                            color="neutral"
+                            onClick={() => setDeleteModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="solid"
+                            color="danger"
+                            onClick={handleConfirmDelete}
+                        >
+                            Delete
+                        </Button>
+                    </Box>
+                </Sheet>
+            </Modal>
         </Sheet>
     );
 }
