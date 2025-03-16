@@ -45,7 +45,12 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
 
     const fetchConversations = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/groq/conversations');
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/groq/conversations', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -116,10 +121,12 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
 
     const createNewConversation = async () => {
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/groq/conversations', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ name: 'New Conversation' }),
             });
@@ -130,8 +137,7 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
 
             const newConversation = await response.json();
             handleConversationClick(newConversation._id);
-            await fetchConversations(); // Refresh the conversation list
-
+            await fetchConversations();
         } catch (error) {
             console.error("Error creating conversation:", error);
         }
@@ -143,14 +149,21 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 const conversation = conversations.find(c => c._id === selectedConversationId);
                 if (conversation && conversation.name === "New Conversation") {
                     try {
-                        const messagesResponse = await fetch(`http://localhost:5000/api/groq/messages/${selectedConversationId}`);
+                        const token = localStorage.getItem('token');
+                        const messagesResponse = await fetch(
+                            `http://localhost:5000/api/groq/messages/${selectedConversationId}`,
+                            {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            }
+                        );
                         if (!messagesResponse.ok) {
                             throw new Error(`HTTP error! status: ${messagesResponse.status}`);
                         }
                         const messages = await messagesResponse.json();
 
                         if (messages.length <= 2) {
-                            // alert("Please rename the conversation before sending messages.");
                             fetchConversationName(selectedConversationId);
                         }
                     } catch (error) {
@@ -247,11 +260,13 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 return;
             }
 
+            const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/api/groq/conversations/${conversationToDelete}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json'
-                },
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             });
             
             if (!response.ok) {

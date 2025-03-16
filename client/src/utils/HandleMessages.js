@@ -20,20 +20,25 @@ const HandleMessages = (groq, conversationId) => {
         setMessages(prevMessages => [...prevMessages, userMessage]);
 
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/groq/sendMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    message: userMessage,
-                    apiKey: groq.apiKey,
-                    conversationId: conversationId
+                    message: {
+                        role: 'user',
+                        content: message
+                    },
+                    conversationId,
+                    apiKey: groq.apiKey
                 })
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error('Failed to send message');
             }
 
             const reader = response.body.getReader();
@@ -82,10 +87,10 @@ const HandleMessages = (groq, conversationId) => {
 
             setIsSending(false);
         } catch (error) {
-            console.error("Error during streaming:", error);
+            console.error("Error during streaming:", error); // Keep this for debugging
             setMessages(prevMessages => [...prevMessages, { 
                 role: 'assistant', 
-                content: "Sorry, there was an error processing your request. Please try again." 
+                content: "I'm sorry, I couldn't process your message right now. Please try again." 
             }]);
             setIsSending(false);
         }

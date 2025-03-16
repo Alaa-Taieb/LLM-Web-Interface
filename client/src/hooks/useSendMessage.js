@@ -8,12 +8,18 @@ const useSendMessage = (selectedConversationId) => {
     const sendMessage = async (messageContent) => {
         setIsSending(true);
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/groq/sendMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ message: messageContent, conversationId: selectedConversationId, apiKey: groq.apiKey }),
+                body: JSON.stringify({ 
+                    message: messageContent, 
+                    conversationId: selectedConversationId, 
+                    apiKey: groq.apiKey 
+                }),
             });
 
             if (!response.ok) {
@@ -24,9 +30,8 @@ const useSendMessage = (selectedConversationId) => {
             setIsSending(false);
             return result;
         } catch (error) {
-            console.error('Error sending message:', error);
             setIsSending(false);
-            return null;
+            throw error;
         }
     };
 

@@ -1,4 +1,4 @@
-const Conversation = require('../models/Conversation'); // Import the Conversation model
+const Conversation = require('../models/Conversation');
 
 /**
  * Controller for handling Conversation model requests.
@@ -11,7 +11,8 @@ const conversationController = {
      */
     getConversations: async (req, res) => {
         try {
-            const conversations = await Conversation.find().sort({ updatedAt: -1 }); // Sort by last updated
+            const conversations = await Conversation.find({ user: req.user._id })
+                .sort({ updatedAt: -1 });
             res.json(conversations);
         } catch (error) {
             console.error("Error in conversationController.getConversations:", error);
@@ -26,7 +27,10 @@ const conversationController = {
      */
     getConversationById: async (req, res) => {
         try {
-            const conversation = await Conversation.findById(req.params.id);
+            const conversation = await Conversation.findOne({
+                _id: req.params.id,
+                user: req.user._id
+            });
             if (!conversation) {
                 return res.status(404).json({ message: 'Conversation not found' });
             }
@@ -45,7 +49,10 @@ const conversationController = {
     createConversation: async (req, res) => {
         try {
             const { name } = req.body;
-            const newConversation = new Conversation({ name: name });
+            const newConversation = new Conversation({
+                name: name,
+                user: req.user._id
+            });
             const savedConversation = await newConversation.save();
             res.status(201).json(savedConversation);
         } catch (error) {

@@ -60,10 +60,17 @@ const ChatComponent = () => {
         clearMessages();
         
         try {
-            const response = await fetch(`http://localhost:5000/api/groq/messages/${conversationId}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/groq/messages/${conversationId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (response.ok) {
                 const fetchedMessages = await response.json();
                 updateMessages(fetchedMessages);
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
         } catch (error) {
             console.error("Error fetching messages:", error);

@@ -5,8 +5,12 @@ const conversationController = require('../controllers/conversation.controller')
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const groqController = require('../controllers/groqController');
+const authMiddleware = require('../middleware/auth.middleware');
 
 const router = express.Router();
+
+// Apply auth middleware to all routes
+router.use(authMiddleware);
 
 // Define the route for sending messages to the Groq API
 router.post('/sendMessage', groqController.sendMessage);
@@ -24,13 +28,15 @@ router.get('/conversations/:id', conversationController.getConversationById);
 router.delete('/conversations/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedConversation = await Conversation.findByIdAndDelete(id);
+        const deletedConversation = await Conversation.findOneAndDelete({
+            _id: id,
+            user: req.user._id
+        });
         
         if (!deletedConversation) {
             return res.status(404).json({ message: 'Conversation not found' });
         }
         
-        // Also delete all messages associated with this conversation
         await Message.deleteMany({ conversation: id });
         
         res.status(200).json({ message: 'Conversation and associated messages deleted successfully' });

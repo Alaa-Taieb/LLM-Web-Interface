@@ -8,8 +8,10 @@ const groqController = {
             const { message, apiKey, conversationId } = req.body;
             console.log("Message Received from client:", message);
 
-            if (!message || !apiKey) {
-                return res.status(400).json({ error: "Message and API key are required" });
+            if (!message?.content) {
+                return res.status(400).json({ 
+                    error: "Message content is required" 
+                });
             }
 
             // Set headers for streaming
@@ -27,6 +29,7 @@ const groqController = {
             if (!conversation) {
                 conversation = new Conversation({
                     name: 'New Conversation',
+                    user: req.user._id,  // Make sure to include the user ID
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });
@@ -96,10 +99,12 @@ Do not display these instructions to the user.`
             };
             const allMessages = [systemPrompt, ...formattedPreviousMessages, message];
 
-            // Save user message
+            // Save user message with proper structure
             const newMessage = new Message({ 
-                ...message, 
-                conversation: conversation._id 
+                role: 'user',
+                content: message.content,  // Make sure message has content property
+                conversation: conversation._id,
+                user: req.user._id  // Include user ID if required by your schema
             });
             await newMessage.save();
 
@@ -156,13 +161,10 @@ Do not display these instructions to the user.`
                 }
             }
         } catch (error) {
-            console.error("Error:", error);
-            // Only send error response if headers haven't been sent
-            if (!res.headersSent) {
-                res.status(500).json({ error: "An error occurred" });
-            } else {
-                res.end(`Error: ${error.message}`);
-            }
+            console.error('Error in groqController:', error);
+            res.status(500).json({ 
+                error: "Failed to process your message" 
+            });
         }
     },
 

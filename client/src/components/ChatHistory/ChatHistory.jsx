@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import Message from '../Message/Message';
 import styles from './ChatHistory.module.css'
 
@@ -14,13 +14,16 @@ import styles from './ChatHistory.module.css'
  * @param {React.RefObject} [props.endBlockRef] - Optional reference for scrolling to the end of the chat.
  * @returns {JSX.Element} The rendered ChatHistory component.
  */
-const ChatHistory = ({messages ,endBlockRef}) => {
+const ChatHistory = forwardRef(({ messages }, ref) => {
     return (
-        <div className={styles.history}>
-            {/* Map over the messages array and render a Message component for each item */}
-            {messages.filter(message => message.role != 'system').map((item,i) => <Message endBlockRef={endBlockRef} key={i} message={item}/>)}
+        <div className={styles.history} ref={ref}>
+            {messages.filter(message => message.role !== 'system').map((message, index) => (
+                <Message key={index} message={message} />
+            ))}
         </div>
     );
-}
+});
+
+ChatHistory.displayName = 'ChatHistory';
 
 export default ChatHistory;

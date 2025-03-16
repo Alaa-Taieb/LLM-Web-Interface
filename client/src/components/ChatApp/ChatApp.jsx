@@ -204,6 +204,6 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
             )}
         </div>
     );
-}
+};
 
 export default ChatApp;
