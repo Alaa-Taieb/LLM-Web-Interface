@@ -35,28 +35,33 @@ const SideBar = ({ minimized, setMinimized, onConversationSelect }) => {
                 setConversations(data);
 
                 // Sort conversations by updatedAt in descending order
-                const sortedConversations = [...data].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                const sortedConversations = [...data].sort((a, b) => 
+                    new Date(b.updatedAt) - new Date(a.updatedAt)
+                );
 
-                // Extract recent conversations (last 3)
-                setRecentConversations(sortedConversations.slice(0, 3));
+                // 1. Most Recent (top 3)
+                const recent = sortedConversations.slice(0, 3);
+                setRecentConversations(recent);
 
-                // Extract conversations from the last 24 hours
+                // 2. Last 24 Hours (excluding those in Recent)
                 const now = new Date();
                 const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-                const last24 = sortedConversations.filter(conversation => new Date(conversation.updatedAt) >= twentyFourHoursAgo);
+                const last24 = sortedConversations.filter(conversation => 
+                    new Date(conversation.updatedAt) >= twentyFourHoursAgo &&
+                    !recent.find(r => r._id === conversation._id)
+                );
                 setLast24HoursConversations(last24);
 
-                // Extract history conversations (excluding recent and last 24 hours)
+                // 3. History (everything else)
                 const history = sortedConversations.filter(conversation =>
-                    !recentConversations.find(recent => recent._id === conversation._id) &&
-                    !last24.find(recent => recent._id === conversation._id)
+                    !recent.find(r => r._id === conversation._id) &&
+                    !last24.find(r => r._id === conversation._id)
                 );
                 setHistoryConversations(history);
 
                 // Select the newest conversation after fetching
                 if (data && data.length > 0) {
                     const newestConversation = data[data.length - 1];
-                    // setSelectedConversationId(newestConversation._id);
                     onConversationSelect(selectedConversationId);
                 }
             } catch (error) {
@@ -165,13 +170,9 @@ const SideBar = ({ minimized, setMinimized, onConversationSelect }) => {
 
     useEffect(() => {
         const handleNameUpdate = (event) => {
-            console.log('Received name update event:', event.detail); // Debug log
             const { id, name, updatedAt } = event.detail;
             
-            // Update main conversations list
             setConversations(prevConversations => {
-                console.log('Previous conversations:', prevConversations); // Debug log
-                
                 const updatedConversations = prevConversations.map(conversation => {
                     if (conversation._id === id) {
                         return { 
@@ -183,43 +184,35 @@ const SideBar = ({ minimized, setMinimized, onConversationSelect }) => {
                     return conversation;
                 });
                 
-                console.log('Updated conversations:', updatedConversations); // Debug log
-                
                 // Sort conversations by updatedAt in descending order
                 const sortedConversations = [...updatedConversations].sort((a, b) => 
                     new Date(b.updatedAt) - new Date(a.updatedAt)
                 );
 
-                // Update the other lists in a separate effect to avoid race conditions
-                setTimeout(() => {
-                    // Update recent conversations
-                    setRecentConversations(sortedConversations.slice(0, 3));
+                // Update the lists with the same priority logic
+                const recent = sortedConversations.slice(0, 3);
+                setRecentConversations(recent);
 
-                    // Update last 24 hours conversations
-                    const now = new Date();
-                    const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-                    const last24 = sortedConversations.filter(conversation => 
-                        new Date(conversation.updatedAt) >= twentyFourHoursAgo
-                    );
-                    setLast24HoursConversations(last24);
+                const now = new Date();
+                const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+                const last24 = sortedConversations.filter(conversation => 
+                    new Date(conversation.updatedAt) >= twentyFourHoursAgo &&
+                    !recent.find(r => r._id === conversation._id)
+                );
+                setLast24HoursConversations(last24);
 
-                    // Update history conversations
-                    const history = sortedConversations.filter(conversation =>
-                        !last24.find(recent => recent._id === conversation._id) &&
-                        !sortedConversations.slice(0, 3).find(recent => recent._id === conversation._id)
-                    );
-                    setHistoryConversations(history);
-                }, 0);
+                const history = sortedConversations.filter(conversation =>
+                    !recent.find(r => r._id === conversation._id) &&
+                    !last24.find(r => r._id === conversation._id)
+                );
+                setHistoryConversations(history);
 
                 return updatedConversations;
             });
         };
 
         window.addEventListener('conversationNameUpdated', handleNameUpdate);
-
-        return () => {
-            window.removeEventListener('conversationNameUpdated', handleNameUpdate);
-        };
+        return () => window.removeEventListener('conversationNameUpdated', handleNameUpdate);
     }, []); // Empty dependency array since we don't need any dependencies
 
     // Add a new effect to monitor conversations state changes
