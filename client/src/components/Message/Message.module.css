@@ -32,22 +32,21 @@
     border-radius: 30px;
 }
 
-.mUser {
-    animation: fade-in 0.5s;
-    display: flex;
-    justify-content: end;
-    width: 80%;
-    max-width: 753.6px;
-    margin: auto;
-}
-
+.mUser,
 .mAdmin {
     animation: fade-in 0.5s;
     display: flex;
-    justify-content: start;
     width: 80%;
     max-width: 753.6px;
-    margin: auto;
+    margin: 10px auto;
+}
+
+.mUser {
+    justify-content: end;
+}
+
+.mAdmin {
+    justify-content: start;
 }
 
 /* Code Block Styles */

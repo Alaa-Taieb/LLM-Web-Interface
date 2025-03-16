@@ -1,7 +1,6 @@
-import React, { useRef, useContext, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import ChatHistory from '../ChatHistory/ChatHistory';
 import styles from './ChatApp.module.css';
-import scrollTo from '../../utils/ScrollTo';
 import MessageStyles from '../Message/Message.module.css';
 import HandleMessages from '../../utils/HandleMessages';
 
@@ -15,39 +14,74 @@ import HandleMessages from '../../utils/HandleMessages';
  * @returns {JSX.Element} The rendered ChatApp component.
  */
 const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversationId }) => {
-    // Reference to the end of the chat history, used for auto-scrolling
-    const endBlockRef = useRef();
-    const chatHistoryRef = useRef(null);
+    const messagesEndRef = useRef(null);
+    const scrollTimeoutRef = useRef(null);
+    const isNewConversation = messages.length === 0;
 
-    /**
-     * useEffect hook to scroll to the end of the chat history whenever a new message is added.
-     * 
-     * The scrollTo function is called with the endBlockRef to ensure smooth scrolling to the latest message.
-     */
-    useEffect(() => {
-        const chatHistory = chatHistoryRef.current;
-
-        if (chatHistory) {
-            scrollTo(endBlockRef, { behavior: "smooth" });
+    const scrollToBottom = useCallback((immediate = false) => {
+        // Clear any pending scroll
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
         }
-    }, [messages]);
+
+        const scroll = () => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({
+                    behavior: immediate ? 'auto' : 'smooth',
+                    block: 'end'
+                });
+            }
+        };
+
+        if (immediate) {
+            scroll();
+        } else {
+            // Debounce scroll updates
+            scrollTimeoutRef.current = setTimeout(scroll, 100);
+        }
+    }, []);
+
+    useEffect(() => {
+        // Scroll immediately for user messages, smoothly for AI responses
+        const isUserMessage = messages[messages.length - 1]?.role === 'user';
+        scrollToBottom(isUserMessage);
+
+        // Cleanup timeout on unmount
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, [messages, scrollToBottom]);
 
     return (
-        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`} ref={chatHistoryRef} onClick={(event) => {
-            // if (event.target.classList.contains(MessageStyles.copyButton)) {
-            //     alert("Clicked!")
-            //     const code = event.target.dataset.code;
-            //     copyCode(code);
-            // }
-        }}>
-            {/* Render the chat history, passing the messages array */}
-            <ChatHistory messages={messages} endBlockRef={endBlockRef} />
-
-            {/* Spacer div to add some space before the input field */}
-            <div ref={endBlockRef}></div>
-
-            {/* Render the chat input field, passing necessary props for message management */}
-            {/* <ChatInput  setMessage={setMessage} sendMessage={sendMessage} message={message}/> */}
+        <div 
+            className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable} ${isNewConversation ? styles.newConversation : ''}`}
+        >
+            {isNewConversation ? (
+                <div className={styles.newConversationContainer}>
+                    <h1>How can I help you today?</h1>
+                    <div className={styles.suggestions}>
+                        <button onClick={() => setMessage("Help me write a function that...")}>
+                            Help me write a function that...
+                        </button>
+                        <button onClick={() => setMessage("Explain how to implement...")}>
+                            Explain how to implement...
+                        </button>
+                        <button onClick={() => setMessage("Debug this code...")}>
+                            Debug this code...
+                        </button>
+                        <button onClick={() => setMessage("What's the best way to...")}>
+                            What's the best way to...
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <ChatHistory messages={messages} />
+                    <div ref={messagesEndRef} style={{ height: '1px', margin: 0 }} />
+                </>
+            )}
         </div>
     );
 }
