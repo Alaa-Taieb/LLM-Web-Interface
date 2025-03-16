@@ -15,6 +15,7 @@ const HandleMessages = (groq, conversationId) => {
         if (!message) return;
         setIsSending(true);
 
+        // Add user message immediately
         setMessages(prevMessages => [...prevMessages, { role: 'user', content: message }]);
 
         try {
@@ -38,22 +39,31 @@ const HandleMessages = (groq, conversationId) => {
             const decoder = new TextDecoder();
             let fullResponse = "";
 
+            // Add initial empty assistant message
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "" }]);
 
             while (true) {
                 const { done, value } = await reader.read();
-
+                
                 if (done) break;
-
+                
                 const chunk = decoder.decode(value);
-                if (chunk !== `{"done": true}\n\n`) {
-                    fullResponse += chunk;
-                    setMessages(prevMessages => {
-                        let updated = [...prevMessages];
-                        updated[updated.length - 1] = { ...updated[updated.length - 1], content: fullResponse };
-                        return updated;
-                    });
+                
+                // Check if the chunk contains the done signal
+                if (chunk.includes('{"done": true}')) {
+                    break;
                 }
+
+                fullResponse += chunk;
+                // Update the last message (assistant's message) with accumulated response
+                setMessages(prevMessages => {
+                    const updated = [...prevMessages];
+                    updated[updated.length - 1] = { 
+                        role: 'assistant', 
+                        content: fullResponse.trim() // Add trim() to remove any extra whitespace
+                    };
+                    return updated;
+                });
             }
 
             setIsSending(false);

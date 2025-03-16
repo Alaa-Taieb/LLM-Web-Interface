@@ -71,14 +71,24 @@
 }
 
 .copyButton {
-    background-color: transparent;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid #4d4d4d;
+    color: #e0e0e0;
     padding: 4px 8px;
     border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    height: 32px; /* Add fixed height */
+    line-height: 24px; /* Add line height */
+}
+
+.copyButton svg {
+    vertical-align: middle; /* Align icon */
+    margin-left: 4px; /* Add space between text and icon */
 }
 
 .copyButton:hover {
