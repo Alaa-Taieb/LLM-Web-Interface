@@ -10,7 +10,8 @@ import {
     Menu, 
     MenuItem, 
     Modal,
-    Button 
+    Button,
+    Tooltip
 } from '@mui/joy';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
@@ -329,16 +330,30 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                     width: '100%',
                 }}>
                     <DescriptionOutlined sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)' }} />
-                    <Typography sx={{
-                        fontSize: "14px",
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        flex: 1,
-                    }}>
-                        {conversation.name}
-                    </Typography>
+                    <Tooltip 
+                        title={conversation.name}
+                        placement="right"
+                        arrow
+                        enterDelay={500}
+                        sx={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            '& .MuiTooltip-arrow': {
+                                color: 'rgba(0, 0, 0, 0.9)'
+                            }
+                        }}
+                    >
+                        <Typography sx={{
+                            fontSize: "14px",
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            flex: 1,
+                            cursor: 'default'
+                        }}>
+                            {conversation.name}
+                        </Typography>
+                    </Tooltip>
                 </Box>
                 <IconButton 
                     size="sm" 
