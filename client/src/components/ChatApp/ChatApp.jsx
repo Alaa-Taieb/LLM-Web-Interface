@@ -54,26 +54,74 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         };
     }, [messages, scrollToBottom]);
 
+    const suggestions = [
+        {
+            title: "Code Assistant",
+            description: "Get help writing clean, efficient code with best practices and modern patterns",
+            icon: "code",
+            prompt: "Help me write a function that..."
+        },
+        {
+            title: "Code Explanation",
+            description: "Understand complex code snippets, algorithms, and programming concepts",
+            icon: "school",
+            prompt: "Explain how to implement..."
+        },
+        {
+            title: "Debug Helper",
+            description: "Find and fix bugs, optimize performance, and improve code quality",
+            icon: "bug_report",
+            prompt: "Debug this code..."
+        },
+        {
+            title: "Best Practices",
+            description: "Learn industry standards, design patterns, and coding conventions",
+            icon: "auto_awesome",
+            prompt: "What's the best way to..."
+        }
+    ];
+
+    const featuredPrompts = [
+        "Convert to TypeScript",
+        "Optimize performance",
+        "Add error handling",
+        "Write unit tests",
+        "Explain this pattern"
+    ];
+
     return (
         <div 
             className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable} ${isNewConversation ? styles.newConversation : ''}`}
         >
             {isNewConversation ? (
                 <div className={styles.newConversationContainer}>
-                    <h1>How can I help you today?</h1>
+                    <h1>Let's start coding together</h1>
                     <div className={styles.suggestions}>
-                        <button onClick={() => setMessage("Help me write a function that...")}>
-                            Help me write a function that...
-                        </button>
-                        <button onClick={() => setMessage("Explain how to implement...")}>
-                            Explain how to implement...
-                        </button>
-                        <button onClick={() => setMessage("Debug this code...")}>
-                            Debug this code...
-                        </button>
-                        <button onClick={() => setMessage("What's the best way to...")}>
-                            What's the best way to...
-                        </button>
+                        {suggestions.map((suggestion, index) => (
+                            <button 
+                                key={index} 
+                                onClick={() => setMessage(suggestion.prompt)}
+                            >
+                                <span className={`material-symbols-outlined ${styles.suggestionIcon}`}>
+                                    {suggestion.icon}
+                                </span>
+                                <div className={styles.suggestionContent}>
+                                    <div className={styles.suggestionTitle}>{suggestion.title}</div>
+                                    <div className={styles.suggestionDescription}>{suggestion.description}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                    <div className={styles.featuredSuggestions}>
+                        {featuredPrompts.map((prompt, index) => (
+                            <div 
+                                key={index}
+                                className={styles.featuredChip}
+                                onClick={() => setMessage(prompt)}
+                            >
+                                {prompt}
+                            </div>
+                        ))}
                     </div>
                 </div>
             ) : (
