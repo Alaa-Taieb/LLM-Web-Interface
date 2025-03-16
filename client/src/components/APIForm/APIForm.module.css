@@ -1,5 +1,5 @@
 .container {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: transparent;
     height: 100vh;
     display: flex;
     align-items: center;
@@ -10,7 +10,6 @@
     background-color: #2F2F2F;
     padding: 20px 50px;
     border-radius: 20px;
-    /* border: 1px solid rgb(175, 175, 175); */
     display: flex;
     color: white;
     flex-direction: column;

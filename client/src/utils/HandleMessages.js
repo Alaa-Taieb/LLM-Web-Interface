@@ -16,7 +16,8 @@ const HandleMessages = (groq, conversationId) => {
         setIsSending(true);
 
         // Add user message immediately
-        setMessages(prevMessages => [...prevMessages, { role: 'user', content: message }]);
+        const userMessage = { role: 'user', content: message };
+        setMessages(prevMessages => [...prevMessages, userMessage]);
 
         try {
             const response = await fetch('http://localhost:5000/api/groq/sendMessage', {
@@ -25,10 +26,10 @@ const HandleMessages = (groq, conversationId) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: { role: 'user', content: message },
+                    message: userMessage,
                     apiKey: groq.apiKey,
-                    conversationId: conversationId,
-                }),
+                    conversationId: conversationId
+                })
             });
 
             if (!response.ok) {
@@ -39,31 +40,44 @@ const HandleMessages = (groq, conversationId) => {
             const decoder = new TextDecoder();
             let fullResponse = "";
 
-            // Add initial empty assistant message
-            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: "" }]);
+            // Add assistant message placeholder
+            setMessages(prevMessages => [...prevMessages, { 
+                role: 'assistant', 
+                content: '' 
+            }]);
 
             while (true) {
                 const { done, value } = await reader.read();
-                
                 if (done) break;
-                
-                const chunk = decoder.decode(value);
-                
-                // Check if the chunk contains the done signal
-                if (chunk.includes('{"done": true}')) {
-                    break;
-                }
 
-                fullResponse += chunk;
-                // Update the last message (assistant's message) with accumulated response
-                setMessages(prevMessages => {
-                    const updated = [...prevMessages];
-                    updated[updated.length - 1] = { 
-                        role: 'assistant', 
-                        content: fullResponse.trim() // Add trim() to remove any extra whitespace
-                    };
-                    return updated;
-                });
+                const chunk = decoder.decode(value);
+                try {
+                    const jsonChunk = JSON.parse(chunk);
+                    if (jsonChunk.type === 'nameUpdate') {
+                        const event = new CustomEvent('conversationNameUpdated', {
+                            detail: {
+                                id: jsonChunk.id,
+                                name: jsonChunk.name,
+                                updatedAt: jsonChunk.updatedAt
+                            }
+                        });
+                        window.dispatchEvent(event);
+                        continue;
+                    }
+                } catch (e) {
+                    // Update the assistant's message with the new chunk
+                    fullResponse += chunk;
+                    setMessages(prevMessages => {
+                        const updated = [...prevMessages];
+                        if (updated.length > 0) {
+                            updated[updated.length - 1] = { 
+                                role: 'assistant', 
+                                content: fullResponse.trim()
+                            };
+                        }
+                        return updated;
+                    });
+                }
             }
 
             setIsSending(false);
@@ -77,7 +91,22 @@ const HandleMessages = (groq, conversationId) => {
         }
     }, [groq.apiKey, conversationId]);
 
-    return { messages, sendMessage, isSending, setIsSending };
+    const clearMessages = useCallback(() => {
+        setMessages([]);
+    }, []);
+
+    const updateMessages = useCallback((newMessages) => {
+        setMessages(newMessages);
+    }, []);
+
+    return { 
+        messages, 
+        sendMessage, 
+        isSending, 
+        setIsSending,
+        clearMessages,
+        updateMessages
+    };
 };
 
 export default HandleMessages;

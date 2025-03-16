@@ -42,27 +42,28 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
     const [error, setError] = useState("");
     const [tutorialOpen, setTutorialOpen] = useState(false);
     const [apiKey, setApiKey] = useState("");
-    const [groq, setGroq, , setGroqObject] = useContext(GroqContext);
+    const [groq, setGroq] = useContext(GroqContext);
 
     const verifyAPIKey = () => {
         const g = new Groq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
         getGroqChatCompletion(g)
-            .then(() => { setAPIValid("true"); setError("") })
+            .then(() => { 
+                setAPIValid("true"); 
+                setError(""); 
+            })
             .catch(err => {
                 setError("Invalid API Key.");
                 setAPIValid("false");
-            })
-    }
-
-    useEffect(() => {
-        setGroqObject(new Groq(groq));
-    }, [groq])
+            });
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setGroq({ ...groq, apiKey: apiKey });
-        onClose(); // Changed from setOpenAPIFormModal(false) to use the passed onClose prop
-    }
+        if (APIValid === "true") {
+            setGroq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
+            onClose();
+        }
+    };
 
     return (
         <div className={styles.container}>

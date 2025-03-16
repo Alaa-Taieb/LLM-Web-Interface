@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import ChatHistory from '../ChatHistory/ChatHistory';
 import styles from './ChatApp.module.css';
 import MessageStyles from '../Message/Message.module.css';
-import HandleMessages from '../../utils/HandleMessages';
 
 /**
  * Main chat application component.
@@ -15,63 +14,45 @@ import HandleMessages from '../../utils/HandleMessages';
  */
 const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversationId }) => {
     const messagesEndRef = useRef(null);
-    const scrollTimeoutRef = useRef(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showNewConversation, setShowNewConversation] = useState(true);
-    const isNewConversation = messages.length === 0;
+    const [isVisible, setIsVisible] = useState(true); // New state for controlling visibility
 
     useEffect(() => {
-        if (!isNewConversation && showNewConversation) {
-            setIsTransitioning(true);
-            setTimeout(() => {
-                setShowNewConversation(false);
-                setIsTransitioning(false);
-            }, 300);
-        } else if (isNewConversation && !showNewConversation) {
+        if (selectedConversationId && messages && messages.length > 0) {
+            handleNewConversationHide();
+        } else if (!selectedConversationId || messages.length === 0) {
             setShowNewConversation(true);
+            setIsVisible(true);
         }
-    }, [isNewConversation]);
+    }, [selectedConversationId, messages]);
 
-    const scrollToBottom = useCallback((immediate = false) => {
-        // Clear any pending scroll
-        if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
-        }
+    // New function to handle hiding the new conversation UI
+    const handleNewConversationHide = () => {
+        setIsTransitioning(true);
+        setIsVisible(false);
+        setTimeout(() => {
+            setShowNewConversation(false);
+            setIsTransitioning(false);
+        }, 300); // Match this with the animation duration in CSS
+    };
 
-        const scroll = () => {
-            if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({
-                    behavior: immediate ? 'auto' : 'smooth',
-                    block: 'end'
-                });
-            }
-        };
-
-        if (immediate) {
-            scroll();
-        } else {
-            // Debounce scroll updates
-            scrollTimeoutRef.current = setTimeout(scroll, 100);
+    const scrollToBottom = useCallback(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, []);
 
     useEffect(() => {
-        // Scroll immediately for user messages, smoothly for AI responses
-        const isUserMessage = messages[messages.length - 1]?.role === 'user';
-        scrollToBottom(isUserMessage);
-
-        // Cleanup timeout on unmount
-        return () => {
-            if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
-            }
-        };
+        scrollToBottom();
     }, [messages, scrollToBottom]);
 
     const handleSuggestionClick = (prompt) => {
         setIsTransitioning(true);
+        setIsVisible(false);
         setTimeout(() => {
-            setMessage(prompt);
+            setMessage(prompt); // Only set the message, don't send it
+            setShowNewConversation(false);
             setIsTransitioning(false);
         }, 300);
     };
@@ -87,69 +68,73 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
             title: "Code Explanation",
             description: "Understand complex code snippets, algorithms, and programming concepts",
             icon: "school",
-            prompt: "Explain how to implement..."
+            prompt: "Explain how this code works..."
         },
         {
             title: "Debug Helper",
             description: "Find and fix bugs, optimize performance, and improve code quality",
             icon: "bug_report",
-            prompt: "Debug this code..."
+            prompt: "Help me debug this code..."
         },
         {
             title: "Best Practices",
             description: "Learn industry standards, design patterns, and coding conventions",
             icon: "auto_awesome",
-            prompt: "What's the best way to..."
+            prompt: "What are the best practices for..."
         }
     ];
 
     const featuredPrompts = [
-        "Convert to TypeScript",
-        "Optimize performance",
-        "Add error handling",
-        "Write unit tests",
-        "Explain this pattern"
+        "Optimize this algorithm",
+        "Review my code",
+        "Unit test example",
+        "Design pattern help",
+        "API design tips"
     ];
 
     return (
-        <div 
-            className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`}
-        >
-            {(showNewConversation) ? (
-                <div className={`${styles.newConversationContainer} ${isTransitioning ? styles.transitioning : ''}`}>
-                    <h1>Let's start coding together</h1>
-                    <div className={styles.suggestions}>
-                        {suggestions.map((suggestion, index) => (
-                            <button 
-                                key={index} 
-                                onClick={() => handleSuggestionClick(suggestion.prompt)}
-                            >
-                                <span className={`material-symbols-outlined ${styles.suggestionIcon}`}>
-                                    {suggestion.icon}
-                                </span>
-                                <div className={styles.suggestionContent}>
-                                    <div className={styles.suggestionTitle}>{suggestion.title}</div>
-                                    <div className={styles.suggestionDescription}>{suggestion.description}</div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                    <div className={styles.featuredSuggestions}>
-                        {featuredPrompts.map((prompt, index) => (
-                            <div 
-                                key={index}
-                                className={styles.featuredChip}
-                                onClick={() => handleSuggestionClick(prompt)}
-                            >
-                                {prompt}
-                            </div>
-                        ))}
+        <div className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`}>
+            {showNewConversation ? (
+                <div className={styles.newConversation}>
+                    <div className={`
+                        ${styles.newConversationContainer} 
+                        ${!isVisible ? styles.fadeOut : styles.fadeIn}
+                    `}>
+                        <h1>Let's start coding together</h1>
+                        <div className={styles.suggestions}>
+                            {suggestions.map((suggestion, index) => (
+                                <button 
+                                    key={index} 
+                                    className={styles.suggestionButton}
+                                    onClick={() => handleSuggestionClick(suggestion.prompt)}
+                                >
+                                    <span className={`material-symbols-outlined ${styles.suggestionIcon}`}>
+                                        {suggestion.icon}
+                                    </span>
+                                    <div className={styles.suggestionContent}>
+                                        <h3>{suggestion.title}</h3>
+                                        <p>{suggestion.description}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                        <div className={styles.featuredSuggestions}>
+                            {featuredPrompts.map((prompt, index) => (
+                                <button
+                                    key={index}
+                                    className={styles.featuredChip}
+                                    onClick={() => handleSuggestionClick(prompt)}
+                                >
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             ) : (
                 <>
                     <ChatHistory messages={messages} />
-                    <div ref={messagesEndRef} style={{ height: '1px', margin: 0 }} />
+                    <div ref={messagesEndRef} />
                 </>
             )}
         </div>

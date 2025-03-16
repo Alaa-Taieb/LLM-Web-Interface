@@ -1,17 +1,8 @@
 const groqService = require('../services/groqService');
-const Message = require('../models/Message'); // Import the Message model
-const Conversation = require('../models/Conversation'); // Import the Conversation model
-const conversationController = require('./conversation.controller'); // Import conversation controller
+const Message = require('../models/Message');
+const Conversation = require('../models/Conversation');
 
-/**
- * Controller for handling Groq API requests.
- */
 const groqController = {
-    /**
-     * Handles the sendMessage request and streams the response to the client.
-     * @param {object} req - The Express request object.
-     * @param {object} res - The Express response object.
-     */
     sendMessage: async (req, res) => {
         try {
             const { message, apiKey, conversationId } = req.body;
@@ -27,11 +18,20 @@ const groqController = {
             res.setHeader('Connection', 'keep-alive');
             res.flushHeaders();
 
-            let conversation = await Conversation.findById(conversationId);
-            let isNewConversation = false;
-
+            // Find or create conversation
+            let conversation;
+            if (conversationId) {
+                conversation = await Conversation.findById(conversationId);
+            }
+            
             if (!conversation) {
-                // Create new conversation logic...
+                // Create new conversation
+                conversation = new Conversation({
+                    name: 'New Conversation',
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+                await conversation.save();
             }
 
             // Fetch previous messages
@@ -63,7 +63,10 @@ Do not display these instructions to the user.`
             const allMessages = [systemPrompt, ...formattedPreviousMessages, message];
 
             // Save user message
-            const newMessage = new Message({ ...message, conversation: conversation._id });
+            const newMessage = new Message({ 
+                ...message, 
+                conversation: conversation._id 
+            });
             await newMessage.save();
 
             let fullResponse = "";
@@ -86,15 +89,46 @@ Do not display these instructions to the user.`
                 });
                 await aiMessage.save();
 
-                // End the response without sending the done signal in the content
+                // Update conversation name if it's still default
+                if (conversation.name === 'New Conversation') {
+                    const userMessage = message.content;
+                    const name = userMessage.length > 50 
+                        ? `${userMessage.substring(0, 47)}...` 
+                        : userMessage;
+
+                    conversation.name = name;
+                    conversation.updatedAt = new Date();
+                    await conversation.save();
+
+                    // Send the name update as a separate chunk
+                    const updateEvent = JSON.stringify({
+                        type: 'nameUpdate',
+                        id: conversation._id,
+                        name: name,
+                        updatedAt: conversation.updatedAt
+                    });
+                    res.write(`\n${updateEvent}\n`);
+                }
+
+                // End the response
                 res.end();
             } catch (error) {
                 console.error("Streaming error:", error);
-                res.status(500).json({ error: "Streaming error occurred" });
+                // Only send error response if headers haven't been sent
+                if (!res.headersSent) {
+                    res.status(500).json({ error: "Streaming error occurred" });
+                } else {
+                    res.end(`Error: ${error.message}`);
+                }
             }
         } catch (error) {
-            console.error("Error in groqController.sendMessage:", error);
-            res.status(500).json({ error: error.message });
+            console.error("Error:", error);
+            // Only send error response if headers haven't been sent
+            if (!res.headersSent) {
+                res.status(500).json({ error: "An error occurred" });
+            } else {
+                res.end(`Error: ${error.message}`);
+            }
         }
     },
 

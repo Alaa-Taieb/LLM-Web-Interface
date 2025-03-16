@@ -14,9 +14,8 @@ import styles from './SideBar.module.css';
  * @param {function} props.setMinimized - Function to set the minimized state.
  * @param {function} props.onConversationSelect - Function to call when a conversation is selected.
  */
-const SideBar = ({ minimized, setMinimized, onConversationSelect }) => {
+const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedConversationId }) => {
     const [conversations, setConversations] = useState([]);
-    const [selectedConversationId, setSelectedConversationId] = useState(null);
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [tooltipConversationId, setTooltipConversationId] = useState(null);
     const timeoutRef = useRef(null);
@@ -24,62 +23,54 @@ const SideBar = ({ minimized, setMinimized, onConversationSelect }) => {
     const [last24HoursConversations, setLast24HoursConversations] = useState([]);
     const [historyConversations, setHistoryConversations] = useState([]);
 
-    useEffect(() => {
-        const fetchConversations = async () => {
-            try {
-                const response = await fetch('http://localhost:5000/api/groq/conversations');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                setConversations(data);
-
-                // Sort conversations by updatedAt in descending order
-                const sortedConversations = [...data].sort((a, b) => 
-                    new Date(b.updatedAt) - new Date(a.updatedAt)
-                );
-
-                // 1. Most Recent (top 3)
-                const recent = sortedConversations.slice(0, 3);
-                setRecentConversations(recent);
-
-                // 2. Last 24 Hours (excluding those in Recent)
-                const now = new Date();
-                const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-                const last24 = sortedConversations.filter(conversation => 
-                    new Date(conversation.updatedAt) >= twentyFourHoursAgo &&
-                    !recent.find(r => r._id === conversation._id)
-                );
-                setLast24HoursConversations(last24);
-
-                // 3. History (everything else)
-                const history = sortedConversations.filter(conversation =>
-                    !recent.find(r => r._id === conversation._id) &&
-                    !last24.find(r => r._id === conversation._id)
-                );
-                setHistoryConversations(history);
-
-                // Select the newest conversation after fetching
-                if (data && data.length > 0) {
-                    const newestConversation = data[data.length - 1];
-                    onConversationSelect(selectedConversationId);
-                }
-            } catch (error) {
-                console.error("Error fetching conversations:", error);
+    const fetchConversations = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/groq/conversations');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        };
+            const data = await response.json();
+            setConversations(data);
 
+            // Sort conversations by updatedAt in descending order
+            const sortedConversations = [...data].sort((a, b) => 
+                new Date(b.updatedAt) - new Date(a.updatedAt)
+            );
+
+            // 1. Most Recent (top 3)
+            const recent = sortedConversations.slice(0, 3);
+            setRecentConversations(recent);
+
+            // 2. Last 24 Hours (excluding those in Recent)
+            const now = new Date();
+            const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+            const last24 = sortedConversations.filter(conversation => 
+                new Date(conversation.updatedAt) >= twentyFourHoursAgo &&
+                !recent.find(r => r._id === conversation._id)
+            );
+            setLast24HoursConversations(last24);
+
+            // 3. History (everything else)
+            const history = sortedConversations.filter(conversation =>
+                !recent.find(r => r._id === conversation._id) &&
+                !last24.find(r => r._id === conversation._id)
+            );
+            setHistoryConversations(history);
+        } catch (error) {
+            console.error("Error fetching conversations:", error);
+        }
+    };
+
+    useEffect(() => {
         fetchConversations();
-    }, [selectedConversationId]); // Add selectedConversationId as a dependency
+    }, []);
 
     const toggleMinimized = () => {
         setMinimized((prevMinimized) => !prevMinimized);
     };
 
     const handleConversationClick = (conversationId) => {
-        console.log("Conversation clicked:", conversationId); // Debugging statement
-        setSelectedConversationId(conversationId);
-        onConversationSelect(conversationId);
+        setSelectedConversationId(conversationId); // Use the prop directly
     };
 
     const fetchConversationName = async (conversationId) => {
@@ -118,11 +109,8 @@ const SideBar = ({ minimized, setMinimized, onConversationSelect }) => {
             }
 
             const newConversation = await response.json();
-            // Add the new conversation at the beginning of the list
-            setConversations(prevConversations => [newConversation, ...prevConversations]);
-
-            setSelectedConversationId(newConversation._id);
-            onConversationSelect(newConversation._id);
+            handleConversationClick(newConversation._id);
+            await fetchConversations(); // Refresh the conversation list
 
         } catch (error) {
             console.error("Error creating conversation:", error);

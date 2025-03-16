@@ -18,8 +18,21 @@ function App() {
     const [openAPIFormModal, setOpenAPIFormModal] = useState(true);
     const [message, setMessage] = useState("");
     const [selectedConversationId, setSelectedConversationId] = useState(null);
-    const { messages, sendMessage, isSending, setIsSending } = HandleMessages(new Groq(groq), selectedConversationId);
     
+    const { 
+        messages, 
+        sendMessage, 
+        isSending, 
+        setIsSending, 
+        clearMessages, 
+        updateMessages 
+    } = HandleMessages(new Groq(groq), selectedConversationId);
+
+    const handleMessageSend = async (messageContent) => {
+        if (!messageContent.trim()) return;
+        await sendMessage(messageContent);
+    };
+
     useEffect(() => {
         setOpenAPIFormModal(groq.apiKey === "");
     }, [groq.apiKey]);
@@ -27,23 +40,69 @@ function App() {
     const [groqObject, setGroqObject] = useState();
     const [minimized, setMinimized] = useState(false);
 
-    const handleConversationSelect = (conversationId) => {
+    const handleConversationSelect = async (conversationId) => {
         console.log("Conversation selected in App:", conversationId);
         setSelectedConversationId(conversationId);
+        // Clear current messages when switching conversations
+        clearMessages();
+        
+        // Fetch messages for the selected conversation
+        try {
+            const response = await fetch(`http://localhost:5000/api/groq/messages/${conversationId}`);
+            if (response.ok) {
+                const fetchedMessages = await response.json();
+                updateMessages(fetchedMessages);
+            }
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+        }
     };
 
     return (
-        <Sheet component='div' sx={{ overflow: 'auto', height: '100vh', display: 'flex' , maxWidth: '100%'}}>
+        <Sheet sx={{ height: '100vh', width: '100vw' }}>
             <GroqContext.Provider value={[groq, setGroq, groqObject, setGroqObject]}>
-                <Modal open={openAPIFormModal}>
-                    <APIForm setOpenAPIFormModal={setOpenAPIFormModal} onClose={() => setOpenAPIFormModal(false)} />
+                <Modal
+                    open={openAPIFormModal}
+                    onClose={() => {}} // Empty function to prevent closing
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <APIForm
+                        onClose={() => setOpenAPIFormModal(false)}
+                    />
                 </Modal>
-                <SideBar minimized={minimized} setMinimized={setMinimized} onConversationSelect={handleConversationSelect} />
-                <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, maxWidth: `calc(100% - ${minimized ? '40px' : '240px'})`, transition: 'max-width 0.3s ease' }}>
-                    <Sheet sx={{maxWidth: '100%' ,width: '100%', height: '100vh',padding: '5px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', flexGrow: 1 }} color='neutral' variant='soft'>
+                <Box sx={{ display: 'flex', height: '100%' }}>
+                    <SideBar 
+                        minimized={minimized} 
+                        setMinimized={setMinimized}
+                        selectedConversationId={selectedConversationId}
+                        setSelectedConversationId={handleConversationSelect}
+                    />
+                    <Sheet sx={{
+                        maxWidth: '100%',
+                        width: '100%', 
+                        height: '100vh',
+                        padding: '5px 20px', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'start', 
+                        alignItems: 'center', 
+                        flexGrow: 1 
+                    }} color='neutral' variant='soft'>
                         <Header />
-                        <ChatApp message={message} setMessage={setMessage} messages={messages} sendMessage={sendMessage} selectedConversationId={selectedConversationId} />
-                        <Footer setMessage={setMessage} sendMessage={sendMessage} message={message} isSending={isSending} setIsSending={setIsSending} />
+                        <ChatApp 
+                            message={message} 
+                            setMessage={setMessage} 
+                            sendMessage={handleMessageSend}
+                            messages={messages} 
+                            selectedConversationId={selectedConversationId} 
+                        />
+                        <Footer 
+                            setMessage={setMessage} 
+                            sendMessage={handleMessageSend} 
+                            message={message} 
+                            isSending={isSending} 
+                            setIsSending={setIsSending} 
+                        />
                     </Sheet>
                 </Box>
             </GroqContext.Provider>
