@@ -1,7 +1,7 @@
 import './App.css';
 import ChatApp from './components/ChatApp/ChatApp';
 import GroqContext from './components/GroqContext';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import APIForm from './components/APIForm/APIForm';
 import { useColorScheme } from '@mui/joy/styles';
 import { Modal, Sheet, Box } from '@mui/joy';
@@ -10,14 +10,31 @@ import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import HandleMessages from './utils/HandleMessages';
 import Groq from 'groq-sdk';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+// import 'dotenv/config';
 
-function App() {
+// Protected Route component
+const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        return <Navigate to="/login" />;
+    }
+    return children;
+};
+
+// Main Chat Component
+const ChatComponent = () => {
     const { mode, setMode } = useColorScheme();
     setMode("dark");
     const [groq, setGroq] = useState({ apiKey: "", dangerouslyAllowBrowser: true });
     const [openAPIFormModal, setOpenAPIFormModal] = useState(true);
     const [message, setMessage] = useState("");
     const [selectedConversationId, setSelectedConversationId] = useState(null);
+    const [groqObject, setGroqObject] = useState();
+    const [minimized, setMinimized] = useState(false);
     
     const { 
         messages, 
@@ -36,17 +53,12 @@ function App() {
     useEffect(() => {
         setOpenAPIFormModal(groq.apiKey === "");
     }, [groq.apiKey]);
-    
-    const [groqObject, setGroqObject] = useState();
-    const [minimized, setMinimized] = useState(false);
 
     const handleConversationSelect = async (conversationId) => {
         console.log("Conversation selected in App:", conversationId);
         setSelectedConversationId(conversationId);
-        // Clear current messages when switching conversations
         clearMessages();
         
-        // Fetch messages for the selected conversation
         try {
             const response = await fetch(`http://localhost:5000/api/groq/messages/${conversationId}`);
             if (response.ok) {
@@ -63,12 +75,10 @@ function App() {
             <GroqContext.Provider value={[groq, setGroq, groqObject, setGroqObject]}>
                 <Modal
                     open={openAPIFormModal}
-                    onClose={() => {}} // Empty function to prevent closing
+                    onClose={() => {}}
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                    <APIForm
-                        onClose={() => setOpenAPIFormModal(false)}
-                    />
+                    <APIForm onClose={() => setOpenAPIFormModal(false)} />
                 </Modal>
                 <Box sx={{ display: 'flex', height: '100%' }}>
                     <SideBar 
@@ -107,6 +117,27 @@ function App() {
                 </Box>
             </GroqContext.Provider>
         </Sheet>
+    );
+};
+
+function App() {
+    return (
+        <GoogleOAuthProvider clientId="361703483682-09pguirkr8luq7rjgnhp5rtgn28rpk7s.apps.googleusercontent.com">
+            <Router>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route
+                        path="/"
+                        element={
+                            <ProtectedRoute>
+                                <ChatComponent />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+            </Router>
+        </GoogleOAuthProvider>
     );
 }
 
