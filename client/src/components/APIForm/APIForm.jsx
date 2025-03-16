@@ -57,11 +57,33 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
             });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (APIValid === "true") {
-            setGroq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
-            onClose();
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:5000/api/keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Default Key', // You might want to add a name input field
+                        key: apiKey
+                    })
+                });
+
+                if (response.ok) {
+                    setGroq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
+                    onClose();
+                } else {
+                    setError('Failed to save API key');
+                }
+            } catch (error) {
+                console.error('Error saving API key:', error);
+                setError('Failed to save API key');
+            }
         }
     };
 

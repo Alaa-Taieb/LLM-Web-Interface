@@ -29,8 +29,8 @@ const ProtectedRoute = ({ children }) => {
 const ChatComponent = () => {
     const { mode, setMode } = useColorScheme();
     setMode("dark");
-    const [groq, setGroq] = useState({ apiKey: "", dangerouslyAllowBrowser: true });
-    const [openAPIFormModal, setOpenAPIFormModal] = useState(true);
+    const [groq, setGroq] = useState(null);
+    const [openAPIFormModal, setOpenAPIFormModal] = useState(false);
     const [message, setMessage] = useState("");
     const [selectedConversationId, setSelectedConversationId] = useState(null);
     const [groqObject, setGroqObject] = useState();
@@ -43,16 +43,77 @@ const ChatComponent = () => {
         setIsSending, 
         clearMessages, 
         updateMessages 
-    } = HandleMessages(new Groq(groq), selectedConversationId);
+    } = HandleMessages(groq, selectedConversationId);
+
+    useEffect(() => {
+        const checkForValidKey = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setOpenAPIFormModal(true);
+                    return;
+                }
+
+                // First, get all keys
+                const response = await fetch('http://localhost:5000/api/keys', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const keys = await response.json();
+                    if (keys && keys.length > 0) {
+                        // Get the actual key value for the first key
+                        const keyResponse = await fetch(`http://localhost:5000/api/keys/${keys[0]._id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (keyResponse.ok) {
+                            const { key } = await keyResponse.json();
+                            try {
+                                const groqInstance = new Groq({ 
+                                    apiKey: key, 
+                                    dangerouslyAllowBrowser: true 
+                                });
+                                // Test the instance
+                                await groqInstance.chat.completions.create({
+                                    messages: [{ role: "user", content: "test" }],
+                                    model: "llama3-70b-8192",
+                                });
+                                setGroq(groqInstance);
+                                setOpenAPIFormModal(false);
+                            } catch (groqError) {
+                                console.error('Invalid Groq API key:', groqError);
+                                setOpenAPIFormModal(true);
+                            }
+                        } else {
+                            console.error('Failed to fetch API key value');
+                            setOpenAPIFormModal(true);
+                        }
+                    } else {
+                        console.log('No valid API keys found');
+                        setOpenAPIFormModal(true);
+                    }
+                } else {
+                    console.error('Failed to fetch API keys');
+                    setOpenAPIFormModal(true);
+                }
+            } catch (error) {
+                console.error('Error checking for API keys:', error);
+                setOpenAPIFormModal(true);
+            }
+        };
+
+        checkForValidKey();
+    }, []);
 
     const handleMessageSend = async (messageContent) => {
         if (!messageContent.trim()) return;
         await sendMessage(messageContent);
     };
-
-    useEffect(() => {
-        setOpenAPIFormModal(groq.apiKey === "");
-    }, [groq.apiKey]);
 
     const handleConversationSelect = async (conversationId) => {
         console.log("Conversation selected in App:", conversationId);
@@ -80,13 +141,15 @@ const ChatComponent = () => {
     return (
         <Sheet sx={{ height: '100vh', width: '100vw' }}>
             <GroqContext.Provider value={[groq, setGroq, groqObject, setGroqObject]}>
-                <Modal
-                    open={openAPIFormModal}
-                    onClose={() => {}}
-                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                    <APIForm onClose={() => setOpenAPIFormModal(false)} />
-                </Modal>
+                {openAPIFormModal && (
+                    <Modal
+                        open={openAPIFormModal}
+                        onClose={() => {}}
+                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        <APIForm onClose={() => setOpenAPIFormModal(false)} />
+                    </Modal>
+                )}
                 <Box sx={{ display: 'flex', height: '100%' }}>
                     <SideBar 
                         minimized={minimized} 

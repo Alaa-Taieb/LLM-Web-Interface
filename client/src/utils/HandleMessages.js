@@ -12,7 +12,7 @@ const HandleMessages = (groq, conversationId) => {
     const [isSending, setIsSending] = useState(false);
 
     const sendMessage = useCallback(async (message) => {
-        if (!message) return;
+        if (!message || !groq) return;
         setIsSending(true);
 
         // Add user message immediately
@@ -27,14 +27,11 @@ const HandleMessages = (groq, conversationId) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    message: {
-                        role: 'user',
-                        content: message
-                    },
-                    conversationId,
-                    apiKey: groq.apiKey
-                })
+                body: JSON.stringify({ 
+                    message: message, 
+                    conversationId: conversationId,
+                    apiKey: groq?.config?.apiKey  // Double optional chaining
+                }),
             });
 
             if (!response.ok) {
@@ -94,7 +91,7 @@ const HandleMessages = (groq, conversationId) => {
             }]);
             setIsSending(false);
         }
-    }, [groq.apiKey, conversationId]);
+    }, [groq, conversationId]); // Remove .apiKey, just watch groq object
 
     const clearMessages = useCallback(() => {
         setMessages([]);

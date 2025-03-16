@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const groqRoutes = require('./routes/groqRoutes');
 const authRoutes = require('./routes/auth.routes');
+const apiKeyRoutes = require('./routes/apiKey.routes');
 require('./config/database.config.js');
 // --- Configuration ---
 
@@ -27,7 +28,7 @@ app.use(express.json());
 // --- Routes ---
 app.use('/api/groq', groqRoutes);
 app.use('/api/auth', authRoutes);
-
+app.use('/api/keys', apiKeyRoutes);
 app.get('/', (req, res) => {
     res.send('Server is running!');
 });
