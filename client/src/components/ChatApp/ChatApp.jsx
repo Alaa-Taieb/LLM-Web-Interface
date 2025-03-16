@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import ChatHistory from '../ChatHistory/ChatHistory';
 import styles from './ChatApp.module.css';
 import MessageStyles from '../Message/Message.module.css';
@@ -16,7 +16,21 @@ import HandleMessages from '../../utils/HandleMessages';
 const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversationId }) => {
     const messagesEndRef = useRef(null);
     const scrollTimeoutRef = useRef(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [showNewConversation, setShowNewConversation] = useState(true);
     const isNewConversation = messages.length === 0;
+
+    useEffect(() => {
+        if (!isNewConversation && showNewConversation) {
+            setIsTransitioning(true);
+            setTimeout(() => {
+                setShowNewConversation(false);
+                setIsTransitioning(false);
+            }, 300);
+        } else if (isNewConversation && !showNewConversation) {
+            setShowNewConversation(true);
+        }
+    }, [isNewConversation]);
 
     const scrollToBottom = useCallback((immediate = false) => {
         // Clear any pending scroll
@@ -53,6 +67,14 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
             }
         };
     }, [messages, scrollToBottom]);
+
+    const handleSuggestionClick = (prompt) => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+            setMessage(prompt);
+            setIsTransitioning(false);
+        }, 300);
+    };
 
     const suggestions = [
         {
@@ -91,16 +113,16 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
 
     return (
         <div 
-            className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable} ${isNewConversation ? styles.newConversation : ''}`}
+            className={`${styles.chatApp} ${styles.chatHistoryContainer} ${styles.scrollable}`}
         >
-            {isNewConversation ? (
-                <div className={styles.newConversationContainer}>
+            {(showNewConversation) ? (
+                <div className={`${styles.newConversationContainer} ${isTransitioning ? styles.transitioning : ''}`}>
                     <h1>Let's start coding together</h1>
                     <div className={styles.suggestions}>
                         {suggestions.map((suggestion, index) => (
                             <button 
                                 key={index} 
-                                onClick={() => setMessage(suggestion.prompt)}
+                                onClick={() => handleSuggestionClick(suggestion.prompt)}
                             >
                                 <span className={`material-symbols-outlined ${styles.suggestionIcon}`}>
                                     {suggestion.icon}
@@ -117,7 +139,7 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
                             <div 
                                 key={index}
                                 className={styles.featuredChip}
-                                onClick={() => setMessage(prompt)}
+                                onClick={() => handleSuggestionClick(prompt)}
                             >
                                 {prompt}
                             </div>

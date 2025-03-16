@@ -1,3 +1,29 @@
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+        visibility: hidden;
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+        visibility: visible;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+    }
+}
+
 .chatApp {
     width: 100%;
     height: 100%;
@@ -13,7 +39,8 @@
 }
 
 .chatHistory {
-    
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
 }
 
 .chatHistoryContainer {
@@ -51,19 +78,27 @@
     justify-content: center;
     align-items: center;
     height: 100%;
+    opacity: 1;
+    visibility: visible;
 }
 
 .newConversationContainer {
-    max-width: 800px; /* Reduced from 900px */
+    max-width: 800px;
     width: 100%;
     text-align: center;
-    padding: 20px; /* Reduced from 40px 20px */
+    padding: 20px;
     margin: auto;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.newConversationContainer.transitioning {
+    animation: fadeOut 0.3s ease forwards;
 }
 
 .newConversationContainer h1 {
-    font-size: 2.4rem; /* Reduced from 2.8rem */
-    margin-bottom: 1.5rem; /* Reduced from 2rem */
+    font-size: 2.4rem;
+    margin-bottom: 1.5rem;
     font-weight: 600;
     background: linear-gradient(120deg, #64B5F6, #E91E63, #8E24AA);
     -webkit-background-clip: text;
@@ -73,15 +108,15 @@
 
 .suggestions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Reduced from 280px */
-    gap: 1rem; /* Reduced from 1.5rem */
-    margin-top: 1.5rem; /* Reduced from 2rem */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
 }
 
 .suggestions button {
-    padding: 1.2rem; /* Reduced from 1.5rem */
+    padding: 1.2rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px; /* Reduced from 16px */
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
     text-align: left;
@@ -90,11 +125,11 @@
     overflow: hidden;
     display: flex;
     align-items: flex-start;
-    min-height: 90px; /* Reduced from 100px */
+    min-height: 90px;
 }
 
 .suggestions button::before {
-    height: 2px; /* Reduced from 3px */
+    height: 2px;
 }
 
 .suggestions button:nth-child(1) {
@@ -125,12 +160,12 @@
 }
 
 .suggestionIcon {
-    margin-right: 12px; /* Reduced from 16px */
-    font-size: 24px; /* Reduced from 28px */
+    margin-right: 12px;
+    font-size: 24px;
     color: var(--accent-color);
     background: rgba(255, 255, 255, 0.1);
-    padding: 8px; /* Reduced from 10px */
-    border-radius: 10px; /* Reduced from 12px */
+    padding: 8px;
+    border-radius: 10px;
     transition: all 0.3s ease;
 }
 
@@ -142,36 +177,36 @@
 .suggestionContent {
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Reduced from 6px */
+    gap: 4px;
 }
 
 .suggestionTitle {
     font-weight: 600;
-    font-size: 1.1rem; /* Reduced from 1.2rem */
+    font-size: 1.1rem;
     color: var(--accent-color);
-    margin-bottom: 2px; /* Reduced from 4px */
+    margin-bottom: 2px;
 }
 
 .suggestionDescription {
-    font-size: 0.9rem; /* Reduced from 0.95rem */
+    font-size: 0.9rem;
     opacity: 0.8;
-    line-height: 1.3; /* Reduced from 1.4 */
+    line-height: 1.3;
 }
 
 .featuredSuggestions {
-    margin-top: 2.5rem; /* Reduced from 3.5rem */
+    margin-top: 2.5rem;
     display: flex;
-    gap: 0.8rem; /* Reduced from 1rem */
+    gap: 0.8rem;
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .featuredChip {
-    padding: 8px 16px; /* Reduced from 10px 20px */
-    border-radius: 20px; /* Reduced from 25px */
+    padding: 8px 16px;
+    border-radius: 20px;
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
-    font-size: 0.9rem; /* Reduced from 0.95rem */
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -193,14 +228,14 @@
 
 @media (max-width: 768px) {
     .newConversationContainer h1 {
-        font-size: 1.8rem; /* Reduced from 2rem */
+        font-size: 1.8rem;
     }
 
     .suggestions {
-        gap: 0.8rem; /* Reduced from 1rem */
+        gap: 0.8rem;
     }
 
     .featuredSuggestions {
-        margin-top: 2rem; /* Reduced from 2.5rem */
+        margin-top: 2rem;
     }
 }
