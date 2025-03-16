@@ -19,6 +19,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styles from './SideBar.module.css';
 import DropdownMenu from '../DropdownMenu/DropdownMenu';
+import ConfirmationModal from '../Modal/ConfirmationModal';
 
 /**
  * Component to render the sidebar with minimize/maximize functionality and conversation list.
@@ -245,7 +246,6 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 return;
             }
 
-            console.log("Attempting to delete conversation:", conversationToDelete);
             const response = await fetch(`http://localhost:5000/api/groq/conversations/${conversationToDelete}`, {
                 method: 'DELETE',
                 headers: {
@@ -257,15 +257,11 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            // Refresh conversations list
             await fetchConversations();
             
-            // If deleted conversation was selected, clear selection
             if (conversationToDelete === selectedConversationId) {
                 setSelectedConversationId(null);
             }
-            
-            console.log("Successfully deleted conversation");
         } catch (error) {
             console.error("Error deleting conversation:", error);
         }
@@ -445,44 +441,20 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 placement="bottom-end"
             />
 
-            <Modal
+            <ConfirmationModal
                 open={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-                <Sheet
-                    variant="outlined"
-                    sx={{
-                        maxWidth: 400,
-                        borderRadius: 'md',
-                        p: 3,
-                        boxShadow: 'lg',
-                    }}
-                >
-                    <Typography level="h4" mb={2}>
-                        Delete Conversation
-                    </Typography>
-                    <Typography mb={3}>
-                        Are you sure you want to delete this conversation? This action cannot be undone.
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                        <Button
-                            variant="plain"
-                            color="neutral"
-                            onClick={() => setDeleteModalOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="solid"
-                            color="danger"
-                            onClick={handleConfirmDelete}
-                        >
-                            Delete
-                        </Button>
-                    </Box>
-                </Sheet>
-            </Modal>
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setConversationToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                title="Delete Conversation"
+                message="You're about to permanently delete this conversation. This action cannot be undone and all messages will be lost."
+                confirmText="Delete Conversation"
+                cancelText="Cancel"
+                danger={true}
+                conversationDetails={conversations.find(c => c._id === conversationToDelete)}
+            />
         </Sheet>
     );
 }
