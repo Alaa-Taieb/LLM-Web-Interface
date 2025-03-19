@@ -12,6 +12,7 @@ import HandleMessages from './utils/HandleMessages';
 import Groq from 'groq-sdk';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import Auth from './pages/auth/Auth';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 // import 'dotenv/config';
@@ -20,7 +21,7 @@ import Register from './pages/auth/Register';
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('token');
     if (!token) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/auth" />;
     }
     return children;
 };
@@ -205,8 +206,7 @@ function App() {
         <GoogleOAuthProvider clientId="361703483682-09pguirkr8luq7rjgnhp5rtgn28rpk7s.apps.googleusercontent.com">
             <Router>
                 <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    <Route path="/auth" element={<Auth />} />
                     <Route
                         path="/"
                         element={
@@ -215,6 +215,7 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route path="*" element={<Navigate to="/auth" />} />
                 </Routes>
             </Router>
         </GoogleOAuthProvider>

@@ -1,0 +1,317 @@
+.authContainer {
+    display: flex;
+    height: 100vh; /* Changed from min-height to height */
+    overflow: hidden; /* Added to prevent page scroll */
+}
+
+.infoSection {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    position: relative;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 2;
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Webkit scrollbar styling */
+.infoSection::-webkit-scrollbar {
+    width: 8px;
+}
+
+.infoSection::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.infoSection::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.infoSection::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.profileSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1rem;
+    gap: 1rem;
+}
+
+.profileImage {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.profileImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.contentSection {
+    gap: 1.5rem; /* Reduced gap */
+    overflow-y: auto; /* Allow scrolling if needed */
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.socialLinks {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.socialLink {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem; /* Reduced padding */
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.socialLink:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.formSection {
+    flex: 1;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    overflow-y: auto; /* Allow scrolling if needed */
+}
+
+.floatingShape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    background: white;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .authContainer {
+        flex-direction: column;
+        height: auto; /* Allow full height on mobile */
+        overflow: auto;
+    }
+
+    .infoSection {
+        padding: 1.5rem;
+        max-height: 100vh; /* Limit height on mobile */
+    }
+
+    .formSection {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Add these new styles */
+.welcomeHeader {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.welcomeTitle {
+    color: #1f2937;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.welcomeSubtitle {
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.5;
+    position: relative;
+    padding-left: 1rem;
+    border-left: 3px solid #3b82f6;
+}
+
+/* Update existing styles */
+.formWrapper {
+    width: 100%;
+    max-width: 380px;
+    padding: 2.5rem;
+    border-radius: 12px;
+    background-color: white;
+    /* box-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.3); */
+}
+
+.input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #1f2937;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.input::placeholder {
+    color: #9ca3af;
+}
+
+.label {
+    color: #4b5563;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.submitButton {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+    background-color: #2563eb;
+}
+
+.switchText {
+    color: #6b7280;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.switchLink {
+    color: #3b82f6;
+    cursor: pointer;
+    text-decoration: none;
+    margin-left: 0.3rem;
+}
+
+.switchLink:hover {
+    color: #2563eb;
+}
+
+.error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* Add/Update these styles */
+.infoBlock {
+    margin-bottom: 1.5rem; /* Reduced margin */
+}
+
+.featuresList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 0.75rem; /* Reduced padding */
+    border-radius: 8px;
+}
+
+.feature span {
+    font-size: 1.5rem;
+}
+
+.feature p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.techStack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.techStack span {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.4rem 0.8rem; /* Reduced padding */
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.socialLinks {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.socialLink {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem; /* Reduced padding */
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.socialLink:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.sectionTitle {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.sectionContent {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+
+
+
+
