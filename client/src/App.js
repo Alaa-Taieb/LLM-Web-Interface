@@ -123,7 +123,36 @@ const ChatComponent = () => {
             hasApiKey: !!(groq?.config?.apiKey || groq?.apiKey)
         });
         
-        await sendMessage(messageContent);
+        try {
+            // If no conversation is selected, fetch the most recent conversation
+            if (!selectedConversationId) {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:5000/api/groq/conversations', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const conversations = await response.json();
+                // Get the most recent conversation (should be the one just created by the backend)
+                const mostRecent = conversations[0];
+                if (mostRecent) {
+                    setSelectedConversationId(mostRecent._id);
+                }
+            }
+
+            await sendMessage(messageContent);
+
+            // Trigger a conversation list refresh in the sidebar
+            const sidebarRefreshEvent = new CustomEvent('conversationsUpdated');
+            window.dispatchEvent(sidebarRefreshEvent);
+        } catch (error) {
+            console.error('Error handling message send:', error);
+        }
     };
 
     const handleConversationSelect = async (conversationId) => {

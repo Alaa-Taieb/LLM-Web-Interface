@@ -87,7 +87,20 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
     };
 
     useEffect(() => {
+        // Add event listener for conversation updates
+        const handleConversationsUpdate = () => {
+            fetchConversations();
+        };
+
+        window.addEventListener('conversationsUpdated', handleConversationsUpdate);
+
+        // Initial fetch
         fetchConversations();
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('conversationsUpdated', handleConversationsUpdate);
+        };
     }, []);
 
     const toggleMinimized = () => {
