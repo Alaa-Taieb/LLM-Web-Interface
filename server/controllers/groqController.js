@@ -1,6 +1,6 @@
 const groqService = require('../services/groqService');
 const Message = require('../models/message.model');
-const Conversation = require('../models/Conversation');
+const Conversation = require('../models/conversation.model');
 
 const groqController = {
     sendMessage: async (req, res) => {
