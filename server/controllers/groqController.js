@@ -1,5 +1,5 @@
 const groqService = require('../services/groqService');
-const Message = require('../models/Message');
+const Message = require('../models/message.model');
 const Conversation = require('../models/Conversation');
 
 const groqController = {

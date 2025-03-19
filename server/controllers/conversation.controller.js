@@ -1,5 +1,5 @@
 const Conversation = require('../models/Conversation');
-const Message = require('../models/Message');
+const Message = require('../models/message.model');
 
 /**
  * Controller for handling Conversation model requests.

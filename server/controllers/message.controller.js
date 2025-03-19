@@ -1,5 +1,5 @@
 
-const Message = require('../models/Message'); // Import the Message model
+const Message = require('../models/message.model'); // Import the Message model
 
 /**
  * Controller for handling Message model requests.
