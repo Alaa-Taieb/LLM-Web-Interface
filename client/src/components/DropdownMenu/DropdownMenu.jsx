@@ -42,15 +42,15 @@ const DropdownMenu = ({
                         },
                     ]}
                     sx={{
-                        minWidth: 180,
+                        minWidth: 200,
                         '--Menu-decoration-offset': '8px',
-                        '--Menu-radius': '8px',
-                        '--List-radius': '6px',
-                        '--List-padding': '4px',
-                        '--ListItem-minHeight': '32px',
-                        boxShadow: 'rgba(0, 0, 0, 0.2) 0px 5px 15px',
-                        backgroundColor: '#2F2F2F',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        '--Menu-radius': '12px',
+                        '--List-radius': '8px',
+                        '--List-padding': '6px',
+                        '--ListItem-minHeight': '40px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                        backgroundColor: '#202123',
+                        border: '1px solid #2F2F2F',
                         zIndex: 1000,
                     }}
                 >
@@ -64,20 +64,21 @@ const DropdownMenu = ({
                             }}
                             sx={{
                                 fontSize: '14px',
-                                py: '6px',
-                                px: '12px',
-                                borderRadius: '4px',
+                                py: '8px',
+                                px: '16px',
+                                borderRadius: '6px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
-                                color: item.color || '#ffffff',
+                                gap: '12px',
+                                color: '#E0E0E0',
+                                transition: 'all 0.2s ease',
                                 '&:hover': {
-                                    backgroundColor: '#424242',
-                                    color: item.color || '#ffffff',
+                                    backgroundColor: '#2F2F2F',
+                                    color: '#FFFFFF',
                                 },
                                 '& .MuiSvgIcon-root': {
-                                    fontSize: '16px',
-                                    color: 'inherit'
+                                    fontSize: '20px',
+                                    color: '#808080',
                                 }
                             }}
                         >
