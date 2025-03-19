@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import DropdownMenu from '../DropdownMenu/DropdownMenu';
 import { googleLogout } from '@react-oauth/google';
 
-const Header = () => {
+const Header = ({ selectedConversationId }) => {
     const [user, setUser] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
+    const [conversationName, setConversationName] = useState('Start Chatting');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -29,6 +30,35 @@ const Header = () => {
             }
         }
     }, []);
+
+    useEffect(() => {
+        if (selectedConversationId) {
+            const token = localStorage.getItem('token');
+            fetch(`http://localhost:5000/api/groq/conversations/${selectedConversationId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                setConversationName(data.name);
+            })
+            .catch(err => console.error('Error fetching conversation:', err));
+        } else {
+            setConversationName('Start Chatting');
+        }
+    }, [selectedConversationId]);
+
+    useEffect(() => {
+        const handleNameUpdate = (event) => {
+            if (event.detail.id === selectedConversationId) {
+                setConversationName(event.detail.name);
+            }
+        };
+
+        window.addEventListener('conversationNameUpdated', handleNameUpdate);
+        return () => window.removeEventListener('conversationNameUpdated', handleNameUpdate);
+    }, [selectedConversationId]);
 
     const handleAvatarClick = (event) => {
         event.stopPropagation();
@@ -67,12 +97,20 @@ const Header = () => {
             }}
         >
             <Grid container sx={{display: 'flex', alignItems: 'center', padding: '8px 16px'}}>
-                <Grid xs={2}>
-                    <Typography level='h6' component="div">
-                        Start Chatting
+                <Grid xs={11}>
+                    <Typography 
+                        level='h6' 
+                        component="div"
+                        sx={{
+                            overflow: 'visible',
+                            whiteSpace: 'normal',
+                            wordBreak: 'break-word',
+                            paddingRight: '16px'
+                        }}
+                    >
+                        {conversationName}
                     </Typography>
                 </Grid>
-                <Grid xs={9} />
                 <Grid xs={1} sx={{display: 'flex', justifyContent: 'flex-end'}}>
                     <IconButton 
                         size='lg'

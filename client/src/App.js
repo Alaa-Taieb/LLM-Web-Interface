@@ -179,7 +179,7 @@ const ChatComponent = () => {
                         alignItems: 'center', 
                         flexGrow: 1 
                     }} color='neutral' variant='soft'>
-                        <Header />
+                        <Header selectedConversationId={selectedConversationId} />
                         <ChatApp 
                             message={message} 
                             setMessage={setMessage} 
