@@ -1,51 +1,65 @@
+/**
+ * Groq API routes configuration.
+ * Handles all routes related to Groq API interactions, conversations, and messages.
+ * @module routes/groqRoutes
+ */
+
 const express = require('express');
 const groqService = require('../services/groqService');
 const messageController = require('../controllers/message.controller');
 const conversationController = require('../controllers/conversation.controller');
-const Message = require('../models/Message');
-const Conversation = require('../models/Conversation');
 const groqController = require('../controllers/groqController');
 const authMiddleware = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
+// Protect all routes with authentication
 router.use(authMiddleware);
 
-// Define the route for sending messages to the Groq API
+/**
+ * Routes Configuration
+ */
+
+/**
+ * @route POST /api/groq/sendMessage
+ * @description Send a message to Groq API and get response
+ * @access Private
+ */
 router.post('/sendMessage', groqController.sendMessage);
 
-// Define the route for getting all conversations
+/**
+ * @route GET /api/groq/conversations
+ * @description Get all conversations for the authenticated user
+ * @access Private
+ */
 router.get('/conversations', conversationController.getConversations);
 
-// New route to create a conversation
+/**
+ * @route POST /api/groq/conversations
+ * @description Create a new conversation
+ * @access Private
+ */
 router.post('/conversations', conversationController.createConversation);
 
-// New route to get a conversation by ID
+/**
+ * @route GET /api/groq/conversations/:id
+ * @description Get a specific conversation by ID
+ * @access Private
+ */
 router.get('/conversations/:id', conversationController.getConversationById);
 
-// Add the DELETE route for conversations
-router.delete('/conversations/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deletedConversation = await Conversation.findOneAndDelete({
-            _id: id,
-            user: req.user._id
-        });
-        
-        if (!deletedConversation) {
-            return res.status(404).json({ message: 'Conversation not found' });
-        }
-        
-        await Message.deleteMany({ conversation: id });
-        
-        res.status(200).json({ message: 'Conversation and associated messages deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting conversation:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
+/**
+ * @route DELETE /api/groq/conversations/:id
+ * @description Delete a conversation and its associated messages
+ * @access Private
+ */
+router.delete('/conversations/:id', conversationController.deleteConversation);
 
+/**
+ * @route GET /api/groq/messages/:conversationId
+ * @description Get all messages for a specific conversation
+ * @access Private
+ */
 router.get('/messages/:conversationId', messageController.getMessagesByConversation);
 
 module.exports = router;
