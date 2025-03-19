@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, Typography, Input, Button, Divider, Stack, Box } from '@mui/joy';
 import { GoogleLogin } from '@react-oauth/google';
@@ -17,6 +17,14 @@ const Auth = () => {
         password: '',
     });
     const [error, setError] = useState('');
+    // Remove these states as they're no longer needed
+    // const [trails, setTrails] = useState([]);
+    // const trailCount = 30;
+
+    // Remove the entire useEffect hook that was handling the cursor trail
+    // useEffect(() => {
+    //    ...
+    // }, []);
 
     const handleChange = (e) => {
         setFormData({
@@ -79,10 +87,24 @@ const Auth = () => {
     };
 
     const shapes = [
-        { color: '#FF5757', size: 80 },
-        { color: '#7C3AED', size: 120 },
-        { color: '#60A5FA', size: 100 },
-        { color: '#34D399', size: 90 },
+        // Larger shapes with adjusted properties
+        { color: '#FF5757', size: 180, speed: 15, delay: 0, rotate: true },
+        { color: '#7C3AED', size: 250, speed: 25, delay: 2, rotate: true },
+        { color: '#60A5FA', size: 220, speed: 20, delay: 1, rotate: false },
+        { color: '#34D399', size: 200, speed: 18, delay: 3, rotate: true },
+        // Additional large shapes
+        { color: '#F472B6', size: 160, speed: 22, delay: 1.5, rotate: true },
+        { color: '#FBBF24', size: 240, speed: 17, delay: 2.5, rotate: false },
+        { color: '#818CF8', size: 190, speed: 23, delay: 0.5, rotate: true },
+        { color: '#4ADE80', size: 210, speed: 19, delay: 1.8, rotate: true },
+        { color: '#FB923C', size: 230, speed: 21, delay: 2.2, rotate: false },
+        { color: '#38BDF8', size: 170, speed: 24, delay: 1.2, rotate: true },
+        { color: '#A78BFA', size: 260, speed: 16, delay: 2.8, rotate: true },
+        { color: '#F87171', size: 165, speed: 20, delay: 0.8, rotate: false },
+        // Some medium-sized shapes
+        { color: '#6EE7B7', size: 140, speed: 28, delay: 1.6, rotate: true },
+        { color: '#C084FC', size: 145, speed: 26, delay: 2.4, rotate: false },
+        { color: '#FDE047', size: 135, speed: 30, delay: 0.3, rotate: true }
     ];
 
     const inputStyles = {
@@ -113,21 +135,25 @@ const Auth = () => {
                         key={index}
                         className={styles.floatingShape}
                         animate={{
-                            x: [0, 30, 0],
-                            y: [0, 40, 0],
-                            rotate: [0, 180, 0],
+                            x: [0, 30, -30, 0],
+                            y: [0, -40, 40, 0],
+                            rotate: shape.rotate ? [0, 180, 360] : 0,
+                            scale: [1, 1.1, 0.9, 1]
                         }}
                         transition={{
-                            duration: 20,
+                            duration: shape.speed,
                             repeat: Infinity,
-                            delay: index * 2,
+                            ease: "easeInOut",
+                            delay: shape.delay,
+                            times: [0, 0.33, 0.66, 1]
                         }}
                         style={{
                             width: shape.size,
                             height: shape.size,
-                            left: `${25 * index}%`,
-                            top: `${20 * index}%`,
+                            left: `${Math.random() * 80}%`,  // Random horizontal position
+                            top: `${Math.random() * 80}%`,   // Random vertical position
                             backgroundColor: shape.color,
+                            opacity: 0.15  // Reduced opacity for better background effect
                         }}
                     />
                 ))}
@@ -259,22 +285,40 @@ const Auth = () => {
                         <h3 className={styles.sectionTitle}>Connect With Me</h3>
                         <div className={styles.socialLinks}>
                             {[
-                                { name: 'GitHub', url: 'https://github.com/yourusername' },
-                                { name: 'LinkedIn', url: 'https://linkedin.com/in/yourusername' },
-                                { name: 'Portfolio', url: 'https://yourportfolio.com' }
+                                { name: 'GitHub', url: 'https://github.com/Alaa-Taieb' },
+                                { name: 'LinkedIn', url: 'https://www.linkedin.com/in/alaa-taieb/' },
+                                { 
+                                    name: 'Portfolio (Coming Soon)', 
+                                    url: '#',  // Remove the URL to prevent navigation
+                                    isWIP: true  // Add flag to identify work in progress items
+                                }
                             ].map((link, index) => (
                                 <motion.a
                                     key={link.name}
                                     href={link.url}
-                                    className={styles.socialLink}
+                                    className={`${styles.socialLink} ${link.isWIP ? styles.wipLink : ''}`}
                                     whileHover={{ y: -3, scale: 1.05 }}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.8 + index * 0.1 }}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={link.isWIP ? (e) => e.preventDefault() : undefined}
+                                    style={link.isWIP ? { cursor: 'not-allowed' } : {}}
                                 >
                                     {link.name}
+                                    {link.isWIP && (
+                                        <span 
+                                            style={{ 
+                                                marginLeft: '8px',
+                                                fontSize: '0.8em',
+                                                opacity: 0.7,
+                                                color: '#FFA500'  // Orange color for WIP indicator
+                                            }}
+                                        >
+                                            🚧
+                                        </span>
+                                    )}
                                 </motion.a>
                             ))}
                         </div>
