@@ -20,6 +20,7 @@ import { FormControl, FormHelperText, FormLabel, Grid, IconButton, Input } from 
 import APIKeyTutorial from '../APIKeyTutorial/APIKeyTutorial';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
+import CircularProgress from '@mui/joy/CircularProgress';
 
 /**
  * Tests the Groq API connection with a simple chat completion request
@@ -75,22 +76,25 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
     const [tutorialOpen, setTutorialOpen] = useState(false);
     const [apiKey, setApiKey] = useState("");
     const [groq, setGroq] = useContext(GroqContext);
+    const [isVerifying, setIsVerifying] = useState(false);
 
     /**
      * Verifies the API key by making a test request to Groq API
      * Updates validation state and error messages accordingly
      */
-    const verifyAPIKey = () => {
+    const verifyAPIKey = async () => {
+        setIsVerifying(true);
         const g = new Groq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
-        getGroqChatCompletion(g)
-            .then(() => { 
-                setAPIValid("true"); 
-                setError(""); 
-            })
-            .catch(err => {
-                setError("Invalid API Key.");
-                setAPIValid("false");
-            });
+        try {
+            await getGroqChatCompletion(g);
+            setAPIValid("true");
+            setError("");
+        } catch (err) {
+            setError("Invalid API Key.");
+            setAPIValid("false");
+        } finally {
+            setIsVerifying(false);
+        }
     };
 
     /**
@@ -229,21 +233,23 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                                                     setAPIValid("false");
                                             }} 
                                             endDecorator={
-                                                <>
-                                                    <IconButton 
-                                                        onClick={verifyAPIKey}
-                                                        color={APIValid === "true" ? 'success' : 'neutral'}
-                                                    >
-                                                        <CheckCircleOutlineOutlinedIcon />
-                                                    </IconButton>
+                                                isVerifying ? (
+                                                    <CircularProgress size="sm" />
+                                                ) : APIValid === "true" ? (
                                                     <IconButton 
                                                         type="submit"
-                                                        disabled={APIValid !== "true"}
-                                                        color={APIValid === "true" ? 'success' : 'neutral'}
+                                                        color='success'
                                                     >
                                                         <SaveOutlinedIcon />
                                                     </IconButton>
-                                                </>
+                                                ) : (
+                                                    <IconButton 
+                                                        onClick={verifyAPIKey}
+                                                        color='neutral'
+                                                    >
+                                                        <CheckCircleOutlineOutlinedIcon />
+                                                    </IconButton>
+                                                )
                                             }
                                         />
                                         {error && <FormHelperText>{error}</FormHelperText>}
