@@ -1,109 +1,133 @@
-import React , {createRef, useEffect, useState} from 'react';
+import React, { createRef, useEffect, useState } from 'react';
 import styles from './ChatInput.module.css';
 import useWindowDimensions from '../../utils/WindowDimensions';
 
 /**
- * Component for the chat input area.
+ * ChatInput component provides a responsive text input area for chat messages.
+ * Features include:
+ * - Dynamic width adjustment based on window size
+ * - Automatic line breaks for long messages
+ * - Enter key submission (without Shift)
+ * - Maximum 7 rows of text
  * 
- * This component provides a text area for users to type messages, which can be sent by
- * pressing the submit button or by pressing Enter (without Shift). It adjusts the text
- * area's row count dynamically based on the input length and adds a line break every
- * 100 characters.
+ * @component
+ * @param {Object} props
+ * @param {function} props.setMessage - Function to update the message state in parent
+ * @param {string} props.message - Current message text value
+ * @param {function} props.sendMessage - Function to handle message submission
+ * @returns {JSX.Element} Rendered ChatInput component
  * 
- * @param {Object} props - The props object.
- * @param {Function} props.setMessage - Function to update the message state.
- * @param {string} props.message - The current message being typed.
- * @param {Function} props.sendMessage - Function to send the current message.
- * @returns {JSX.Element} The rendered ChatInput component.
+ * @example
+ * <ChatInput
+ *   setMessage={handleMessageUpdate}
+ *   message={currentMessage}
+ *   sendMessage={handleMessageSubmit}
+ * />
  */
-const ChatInput = ({setMessage , message , sendMessage}) => {
-    // Get the current window dimensions using the custom hook
-    const { height , width } = useWindowDimensions();
-
-    // State to dynamically set the input width based on the window width
-    const [inputWidth, setInputWidth] = useState(100);
-
-    // Update the input width whenever the window width changes
-    useEffect(() => {
-        setInputWidth(width / 10 < 100 ? width / 10 : 100);
-    } , [width]);
+const ChatInput = ({ setMessage, message, sendMessage }) => {
+    /**
+     * Get current window dimensions using custom hook
+     * @type {{height: number, width: number}}
+     */
+    const { height, width } = useWindowDimensions();
 
     /**
-     * Reference to the form element, used to programmatically submit the form.
+     * State to control input width based on window size
+     * @type {[number, function]} inputWidth - Number of columns for textarea
+     */
+    const [inputWidth, setInputWidth] = useState(100);
+
+    /**
+     * Form reference for programmatic submission
      * @type {React.RefObject<HTMLFormElement>}
      */
     let formRef = createRef();
 
     /**
-     * Handles the form submission to send the message.
+     * Updates input width when window size changes
+     * Calculates width as 10% of window width, with minimum of 100 columns
+     */
+    useEffect(() => {
+        setInputWidth(width / 10 < 100 ? width / 10 : 100);
+    }, [width]);
+
+    /**
+     * Handles form submission
+     * Prevents default form behavior, sends message, and clears input
      * 
-     * @param {React.FormEvent} e - The form submission event.
+     * @param {React.FormEvent} e - Form submission event
      */
     const handleSend = (e) => {
         e.preventDefault();
         sendMessage(message);
         setMessage("");
-    }
+    };
 
     /**
-     * Handles changes in the textarea, updates the message state, and adjusts the
-     * number of rows in the textarea based on the input length.
+     * Handles textarea input changes
+     * Features:
+     * - Automatically adds line breaks for long lines
+     * - Limits maximum rows to 7
+     * - Updates textarea height dynamically
      * 
-     * @param {React.ChangeEvent<HTMLTextAreaElement>} e - The change event from the textarea.
+     * @param {React.ChangeEvent<HTMLTextAreaElement>} e - Change event
      */
     const handleChange = e => {
         let inputValue = e.target.value;
 
-        // Insert a line break every 'inputWidth' characters
-        if ((inputValue.length % inputWidth == 0) && (inputValue.length != 0))
+        // Insert line break every 'inputWidth' characters
+        if ((inputValue.length % inputWidth === 0) && (inputValue.length !== 0)) {
             inputValue = `${inputValue}\n`;
+        }
         
-        // Limit the number of line breaks to a maximum of 7 rows
+        // Calculate and limit number of rows (max 7)
         let lineBreakCount = inputValue.split("\n").length;
         lineBreakCount = lineBreakCount > 7 ? 7 : lineBreakCount;
         e.target.rows = lineBreakCount;
 
         setMessage(inputValue);
-    }
+    };
 
     /**
-     * Handles the "Enter" key press to submit the form if Enter is pressed without Shift.
+     * Handles Enter key press for form submission
+     * Submits only if:
+     * - Enter key is pressed
+     * - Shift is not held
+     * - Message is not empty
      * 
-     * @param {React.KeyboardEvent<HTMLTextAreaElement>} e - The keyboard event.
+     * @param {React.KeyboardEvent<HTMLTextAreaElement>} e - Keyboard event
      */
     const onEnterPress = (e) => {
-        if(e.keyCode == 13 && e.shiftKey == false && message.trim() != "") {
+        if (e.keyCode === 13 && !e.shiftKey && message.trim() !== "") {
             e.preventDefault();
-            console.log(formRef.current);
             formRef.current.requestSubmit();
         }
-    }
+    };
 
     return (
         <div className={styles.input_container}>
             <form ref={formRef} onSubmit={handleSend} className={styles.input}>
-            <textarea
-                className={styles.text_area}
-                cols={inputWidth}
-                rows="1"
-                placeholder='Type your message here'
-                onChange={handleChange}
-                value={message}
-                onKeyDown={onEnterPress}
-            >
-            </textarea>
-            <button
-                type='submit'
-                className={message ? styles.button_enabled : styles.button_disabled}
-                disabled={!message}
-            >
-                <span className="material-symbols-outlined">
-                    arrow_upward
-                </span>
-            </button>
-        </form>
+                <textarea
+                    className={styles.text_area}
+                    cols={inputWidth}
+                    rows="1"
+                    placeholder='Type your message here'
+                    onChange={handleChange}
+                    value={message}
+                    onKeyDown={onEnterPress}
+                />
+                <button
+                    type='submit'
+                    className={message ? styles.button_enabled : styles.button_disabled}
+                    disabled={!message}
+                >
+                    <span className="material-symbols-outlined">
+                        arrow_upward
+                    </span>
+                </button>
+            </form>
         </div>
     );
-}
+};
 
 export default ChatInput;
