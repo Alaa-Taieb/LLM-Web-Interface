@@ -8,7 +8,7 @@ const express = require('express');
 const groqService = require('../services/groqService');
 const messageController = require('../controllers/message.controller');
 const conversationController = require('../controllers/conversation.controller');
-const groqController = require('../controllers/groqController');
+const groqController = require('../controllers/groq.controller.js');
 const authMiddleware = require('../middleware/auth.middleware');
 
 const router = express.Router();
