@@ -12,11 +12,28 @@ import { Avatar } from '@mui/joy';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 
+/**
+ * Message component that renders individual chat messages with support for
+ * Markdown, code syntax highlighting, and user avatars.
+ *
+ * @component
+ * @param {Object} props
+ * @param {Object} props.message - Message object containing role and content
+ * @param {('user'|'assistant')} props.message.role - Role of message sender
+ * @param {string} props.message.content - Content of the message
+ */
 const Message = ({ message }) => {
     const { role, content } = message;
     const [copied, setCopied] = useState(null);
     const [user, setUser] = useState(null);
 
+    /**
+     * Effect hook to fetch user data from the server
+     * Decodes JWT token to get userId and fetches user details including avatar
+     * 
+     * @effect
+     * @fires {Function} setUser - Updates user state with fetched data
+     */
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -34,14 +51,29 @@ const Message = ({ message }) => {
                 console.error('Error decoding token:', error);
             }
         }
-    }, []);
+    }, []); // Empty dependency array means this runs once on mount
 
+    /**
+     * Handles copying code to clipboard and shows temporary confirmation
+     * 
+     * @callback
+     * @param {string} code - The code to copy
+     * @param {number|string} index - Unique identifier for the code block
+     */
     const handleCopy = useCallback(async (code, index) => {
         navigator.clipboard.writeText(code);
         setCopied(index);
         setTimeout(() => setCopied(null), 2000);
     }, []);
 
+    /**
+     * Extracts plain text from code block children
+     * Recursively processes nested children to get raw text content
+     * 
+     * @callback
+     * @param {(string|Object|Array)} children - The children to extract text from
+     * @returns {string} The extracted text content
+     */
     const extractCodeText = useCallback((children) => {
         if (!children) return "";
         if (typeof children === "string") return children;
@@ -59,6 +91,17 @@ const Message = ({ message }) => {
             .trim();
     }, []);
 
+    /**
+     * Renders code blocks with syntax highlighting and copy button
+     * Supports both inline code and block code formats
+     * 
+     * @callback
+     * @param {Object} props - Code block properties
+     * @param {Object} props.node - AST node information
+     * @param {string} props.className - Language class name
+     * @param {React.ReactNode} props.children - Code content
+     * @returns {JSX.Element} Rendered code block
+     */
     const renderCodeBlock = useCallback(({ node, className, children, ...props }) => {
         const match = /language-(\w+)/.exec(className || '');
         const language = match ? match[1] : 'plaintext';
