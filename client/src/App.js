@@ -1,3 +1,9 @@
+/**
+ * Main Application Component
+ * Handles routing, authentication, and the main chat interface.
+ * @module App
+ */
+
 import './App.css';
 import ChatApp from './components/ChatApp/ChatApp';
 import GroqContext from './components/GroqContext';
@@ -15,9 +21,17 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Auth from './pages/auth/Auth';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-// import 'dotenv/config';
 
-// Protected Route component
+/**
+ * Protected Route Component
+ * Ensures routes are only accessible to authenticated users.
+ * Redirects to auth page if no token is present.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to render if authenticated
+ * @returns {JSX.Element} Protected route or redirect
+ */
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -26,10 +40,23 @@ const ProtectedRoute = ({ children }) => {
     return children;
 };
 
-// Main Chat Component
+/**
+ * Main Chat Component
+ * Handles the core chat functionality including:
+ * - Groq API integration
+ * - Message handling
+ * - Conversation management
+ * - UI state management
+ * 
+ * @component
+ * @returns {JSX.Element} Main chat interface
+ */
 const ChatComponent = () => {
+    // Theme management
     const { mode, setMode } = useColorScheme();
     setMode("dark");
+
+    // State management
     const [groq, setGroq] = useState(null);
     const [openAPIFormModal, setOpenAPIFormModal] = useState(false);
     const [message, setMessage] = useState("");
@@ -37,6 +64,7 @@ const ChatComponent = () => {
     const [groqObject, setGroqObject] = useState();
     const [minimized, setMinimized] = useState(false);
     
+    // Message handling hook
     const { 
         messages, 
         sendMessage, 
@@ -46,6 +74,14 @@ const ChatComponent = () => {
         updateMessages 
     } = HandleMessages(groq, selectedConversationId);
 
+    /**
+     * Validates and initializes Groq API key
+     * Checks for existing keys and tests connectivity
+     * 
+     * @async
+     * @function checkForValidKey
+     * @throws {Error} If API key validation fails
+     */
     useEffect(() => {
         const checkForValidKey = async () => {
             try {
@@ -55,7 +91,7 @@ const ChatComponent = () => {
                     return;
                 }
 
-                // First, get all keys
+                // Fetch all available API keys
                 const response = await fetch('http://localhost:5000/api/keys', {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -65,7 +101,7 @@ const ChatComponent = () => {
                 if (response.ok) {
                     const keys = await response.json();
                     if (keys && keys.length > 0) {
-                        // Get the actual key value for the first key
+                        // Get the first key's value
                         const keyResponse = await fetch(`http://localhost:5000/api/keys/${keys[0]._id}`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`
@@ -78,15 +114,15 @@ const ChatComponent = () => {
                                 throw new Error('No API key found');
                             }
 
+                            // Initialize Groq instance
                             const groqInstance = new Groq({ 
                                 apiKey: key, 
                                 dangerouslyAllowBrowser: true 
                             });
 
-                            // Store the API key in the config
                             groqInstance.config = { apiKey: key };
                             
-                            // Test the instance
+                            // Test the connection
                             await groqInstance.chat.completions.create({
                                 messages: [{ role: "user", content: "test" }],
                                 model: "llama3-70b-8192",
@@ -113,6 +149,15 @@ const ChatComponent = () => {
         checkForValidKey();
     }, []);
 
+    /**
+     * Handles sending new messages
+     * Creates new conversation if none selected
+     * 
+     * @async
+     * @function handleMessageSend
+     * @param {string} messageContent - Message to send
+     * @throws {Error} If message sending fails
+     */
     const handleMessageSend = async (messageContent) => {
         if (!messageContent.trim()) return;
         
@@ -124,7 +169,7 @@ const ChatComponent = () => {
         });
         
         try {
-            // If no conversation is selected, fetch the most recent conversation
+            // Create new conversation if none selected
             if (!selectedConversationId) {
                 const token = localStorage.getItem('token');
                 const response = await fetch('http://localhost:5000/api/groq/conversations', {
@@ -138,7 +183,6 @@ const ChatComponent = () => {
                 }
 
                 const conversations = await response.json();
-                // Get the most recent conversation (should be the one just created by the backend)
                 const mostRecent = conversations[0];
                 if (mostRecent) {
                     setSelectedConversationId(mostRecent._id);
@@ -147,7 +191,7 @@ const ChatComponent = () => {
 
             await sendMessage(messageContent);
 
-            // Trigger a conversation list refresh in the sidebar
+            // Update sidebar
             const sidebarRefreshEvent = new CustomEvent('conversationsUpdated');
             window.dispatchEvent(sidebarRefreshEvent);
         } catch (error) {
@@ -155,6 +199,15 @@ const ChatComponent = () => {
         }
     };
 
+    /**
+     * Handles conversation selection
+     * Loads messages for selected conversation
+     * 
+     * @async
+     * @function handleConversationSelect
+     * @param {string} conversationId - ID of selected conversation
+     * @throws {Error} If message fetching fails
+     */
     const handleConversationSelect = async (conversationId) => {
         console.log("Conversation selected in App:", conversationId);
         setSelectedConversationId(conversationId);
@@ -230,6 +283,13 @@ const ChatComponent = () => {
     );
 };
 
+/**
+ * Root Application Component
+ * Sets up routing and authentication providers
+ * 
+ * @component
+ * @returns {JSX.Element} Root application component
+ */
 function App() {
     return (
         <GoogleOAuthProvider clientId="361703483682-09pguirkr8luq7rjgnhp5rtgn28rpk7s.apps.googleusercontent.com">
