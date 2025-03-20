@@ -10,21 +10,24 @@ import CardOverflow from '@mui/joy/CardOverflow';
 import Typography from '@mui/joy/Typography';
 import List from '@mui/joy/List';
 import ListItem from '@mui/joy/ListItem';
-import Button from '@mui/joy/Button'
+import Button from '@mui/joy/Button';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import Modal from '@mui/joy/Modal';
 import ModalClose from '@mui/joy/ModalClose';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Sheet from '@mui/joy/Sheet';
 import { FormControl, FormHelperText, FormLabel, Grid, IconButton, Input } from '@mui/joy';
-import Stepper from '@mui/joy/Stepper';
-import Step from '@mui/joy/Step';
-import StepButton from '@mui/joy/StepButton';
-import StepIndicator from '@mui/joy/StepIndicator';
 import APIKeyTutorial from '../APIKeyTutorial/APIKeyTutorial';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 
+/**
+ * Tests the Groq API connection with a simple chat completion request
+ * @async
+ * @param {Groq} groq - Initialized Groq client instance
+ * @returns {Promise<Object>} Chat completion response
+ * @throws {Error} If API request fails
+ */
 export async function getGroqChatCompletion(groq) {
     return groq.chat.completions.create({
         messages: [
@@ -37,13 +40,46 @@ export async function getGroqChatCompletion(groq) {
     });
 }
 
+/**
+ * APIForm component provides a form for managing Groq API key configuration.
+ * Features:
+ * - API key input and validation
+ * - Interactive tutorial for key generation
+ * - Secure key storage
+ * - Visual feedback for validation status
+ * - Error handling and display
+ * 
+ * @component
+ * @param {Object} props
+ * @param {Function} props.onClose - Function to close the form modal
+ * @param {React.Ref} ref - Forwarded ref for the form component
+ * @returns {JSX.Element} Rendered APIForm component
+ * 
+ * @example
+ * <APIForm 
+ *   onClose={() => setShowForm(false)} 
+ *   ref={formRef}
+ * />
+ */
 const APIForm = forwardRef(({ onClose, ...props }, ref) => {
+    /**
+     * State Management
+     * @type {[string, Function]} APIValid - Validation status of the API key
+     * @type {[string, Function]} error - Error message if validation fails
+     * @type {[boolean, Function]} tutorialOpen - Controls tutorial modal visibility
+     * @type {[string, Function]} apiKey - Current API key value
+     * @type {[Object, Function]} groq - Groq context for global state
+     */
     const [APIValid, setAPIValid] = useState("false");
     const [error, setError] = useState("");
     const [tutorialOpen, setTutorialOpen] = useState(false);
     const [apiKey, setApiKey] = useState("");
     const [groq, setGroq] = useContext(GroqContext);
 
+    /**
+     * Verifies the API key by making a test request to Groq API
+     * Updates validation state and error messages accordingly
+     */
     const verifyAPIKey = () => {
         const g = new Groq({ apiKey: apiKey, dangerouslyAllowBrowser: true });
         getGroqChatCompletion(g)
@@ -57,6 +93,11 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
             });
     };
 
+    /**
+     * Handles form submission by saving the validated API key
+     * @async
+     * @param {React.FormEvent} e - Form submission event
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (APIValid === "true") {
@@ -69,7 +110,7 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        name: 'Default Key', // You might want to add a name input field
+                        name: 'Default Key',
                         key: apiKey
                     })
                 });
@@ -97,7 +138,12 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
             >
                 <CardOverflow>
                     <AspectRatio ratio={100/465} sx={{ width: 100, height: 465 }}>
-                        <img src="assets\API_Card_OverFlow_Start.webp" alt="" loading='lazy' style={{ width: "100%", height: "500px" }} />
+                        <img 
+                            src="assets\API_Card_OverFlow_Start.webp" 
+                            alt="API Setup Illustration" 
+                            loading='lazy' 
+                            style={{ width: "100%", height: "500px" }} 
+                        />
                     </AspectRatio>
                 </CardOverflow>
                 <CardContent>
@@ -105,7 +151,7 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                     <CardContent orientation='vertical' sx={{ textAlign: 'start' }}>
                         <Typography level='title-lg'>Why?</Typography>
                         <Typography level='body-sm'>
-                            This application uses Groq AI model through their public Apis.
+                            This application uses Groq AI model through their public APIs.
                             Their APIs require an API key to function.
                         </Typography>
                         <Typography level='title-lg'>How?</Typography>
@@ -121,7 +167,8 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                                         size='sm'
                                         variant='outlined'
                                         color='neutral'
-                                        startDecorator={<OpenInNew />}>
+                                        startDecorator={<OpenInNew />}
+                                    >
                                         Groq
                                     </Button>
                                 </ListItem>
@@ -132,7 +179,8 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                                         size='sm'
                                         color='neutral'
                                         startDecorator={<InfoOutlinedIcon />}
-                                        onClick={() => setTutorialOpen(true)}>
+                                        onClick={() => setTutorialOpen(true)}
+                                    >
                                         Tutorial
                                     </Button>
                                     <Modal
@@ -148,7 +196,7 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                                 </ListItem>
                                 <ListItem>
                                     <Typography level='body-sm'>
-                                        Paste your API key in the textfield blow.
+                                        Paste your API key in the textfield below.
                                     </Typography>
                                 </ListItem>
                                 <ListItem>
@@ -172,36 +220,33 @@ const APIForm = forwardRef(({ onClose, ...props }, ref) => {
                                         <Input 
                                             type='password' 
                                             name='api_key' 
-                                            color={APIValid == "true" ? 'success' : APIValid == "false" ? 'neutral' : "neutral"} 
+                                            color={APIValid === "true" ? 'success' : 'neutral'} 
                                             size='md' 
                                             placeholder='Insert your API Key here ...' 
                                             onChange={e => {
                                                 setApiKey(e.target.value);
-                                                if (APIValid == "true")
-                                                    setAPIValid("false")
+                                                if (APIValid === "true")
+                                                    setAPIValid("false");
                                             }} 
                                             endDecorator={
                                                 <>
-                                                    {
-                                                        (APIValid == "false") || (APIValid == "checking") ?
-                                                            <IconButton color='success' loading={APIValid=="checking"} onClick={(e) => {setAPIValid("checking"); verifyAPIKey()}}>
-                                                                <CheckCircleOutlineOutlinedIcon />
-                                                            </IconButton>
-                                                        : APIValid == "true" ?
-                                                            <Button type='submit' startDecorator={<SaveOutlinedIcon />}>
-                                                                Save
-                                                            </Button>
-                                                        : ""
-                                                    }
+                                                    <IconButton 
+                                                        onClick={verifyAPIKey}
+                                                        color={APIValid === "true" ? 'success' : 'neutral'}
+                                                    >
+                                                        <CheckCircleOutlineOutlinedIcon />
+                                                    </IconButton>
+                                                    <IconButton 
+                                                        type="submit"
+                                                        disabled={APIValid !== "true"}
+                                                        color={APIValid === "true" ? 'success' : 'neutral'}
+                                                    >
+                                                        <SaveOutlinedIcon />
+                                                    </IconButton>
                                                 </>
-                                            } 
+                                            }
                                         />
-                                        {error &&
-                                            <FormHelperText>
-                                                <InfoOutlinedIcon />
-                                                {error}
-                                            </FormHelperText>
-                                        }
+                                        {error && <FormHelperText>{error}</FormHelperText>}
                                     </FormControl>
                                 </form>
                             </Grid>
