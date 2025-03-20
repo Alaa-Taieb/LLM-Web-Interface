@@ -6,25 +6,46 @@ import MessageStyles from '../Message/Message.module.css';
 
 /**
  * Main chat application component.
+ * Manages message display, auto-scrolling, and conversation state transitions.
  * 
- * This component serves as the core of the chat application, managing the message input,
- * message history display, and interaction with the Groq SDK. It uses the GroqContext
- * to obtain configuration details and handles messages via the `HandleMessages` utility.
+ * Features:
+ * - Smart auto-scrolling behavior
+ * - Loading states and transitions
+ * - New conversation UI with suggestions
+ * - Message history display
  * 
- * @returns {JSX.Element} The rendered ChatApp component.
+ * @component
+ * @param {Object} props
+ * @param {string} props.message - Current message text
+ * @param {function} props.setMessage - Function to update message text
+ * @param {function} props.sendMessage - Function to handle message sending
+ * @param {Array<Object>} props.messages - Array of chat messages
+ * @param {string|null} props.selectedConversationId - ID of currently selected conversation
+ * @returns {JSX.Element} Rendered ChatApp component
  */
 const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversationId }) => {
+    /**
+     * Refs for scroll management
+     * @type {React.RefObject<HTMLDivElement>}
+     */
     const messagesEndRef = useRef(null);
     const chatHistoryRef = useRef(null);
+
+    /**
+     * UI State Management
+     */
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
     const [isStreaming, setIsStreaming] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showNewConversation, setShowNewConversation] = useState(true);
-    const [isVisible, setIsVisible] = useState(true); // New state for controlling visibility
+    const [isVisible, setIsVisible] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-    // Handle initial conversation switching
+    /**
+     * Handles initial conversation switching
+     * Shows loading state and manages transitions
+     */
     useEffect(() => {
         if (selectedConversationId) {
             setIsLoadingMessages(true);
@@ -34,12 +55,15 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
                     setIsVisible(false);
                 }
                 setIsLoadingMessages(false);
-            }, 300); // Increased delay slightly for smoother transition
+            }, 300);
             return () => clearTimeout(timer);
         }
     }, [selectedConversationId, messages]);
 
-    // Handle messages state with smoother transitions
+    /**
+     * Manages message state transitions
+     * Handles showing/hiding new conversation UI based on message state
+     */
     useEffect(() => {
         let timer;
         if (messages && messages.length > 0) {
@@ -49,7 +73,6 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
             setIsLoadingMessages(false);
         } else if (selectedConversationId && (!messages || messages.length === 0)) {
             if (!isLoadingMessages) {
-                // Add a small delay before showing the new conversation UI
                 timer = setTimeout(() => {
                     setShowNewConversation(true);
                     setIsVisible(true);
@@ -65,7 +88,10 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         return () => clearTimeout(timer);
     }, [messages, selectedConversationId, isLoadingMessages]);
 
-    // Debounced scroll function
+    /**
+     * Debounced scroll function for performance
+     * Handles smooth scrolling behavior based on streaming state
+     */
     const debouncedScrollToBottom = useMemo(
         () => debounce(() => {
             if (!shouldAutoScroll || !messagesEndRef.current) return;
@@ -78,14 +104,19 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         [shouldAutoScroll, isStreaming]
     );
 
-    // Cleanup debounce on unmount
+    /**
+     * Cleanup debounce on unmount
+     */
     useEffect(() => {
         return () => {
             debouncedScrollToBottom.cancel();
         };
     }, [debouncedScrollToBottom]);
 
-    // Function to check if user is near bottom
+    /**
+     * Checks if user is near bottom of chat
+     * @returns {boolean} True if user is within threshold of bottom
+     */
     const isNearBottom = useCallback(() => {
         if (!chatHistoryRef.current) return true;
         
@@ -94,12 +125,16 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
     }, []);
 
-    // Handle scroll events
+    /**
+     * Updates auto-scroll behavior based on scroll position
+     */
     const handleScroll = useCallback(() => {
         setShouldAutoScroll(isNearBottom());
     }, [isNearBottom]);
 
-    // Add scroll event listener
+    /**
+     * Sets up scroll event listeners
+     */
     useEffect(() => {
         const container = chatHistoryRef.current;
         if (container) {
@@ -108,26 +143,35 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         }
     }, [handleScroll]);
 
-    // Auto-scroll on new messages or content updates
+    /**
+     * Manages auto-scrolling on new messages
+     */
     useEffect(() => {
         if (isStreaming && shouldAutoScroll) {
             debouncedScrollToBottom();
         } else if (!isStreaming) {
-            // For non-streaming updates, scroll immediately
             debouncedScrollToBottom();
         }
     }, [messages, isStreaming, shouldAutoScroll, debouncedScrollToBottom]);
 
+    /**
+     * Handles suggestion click with smooth transition
+     * @param {string} prompt - Selected suggestion text
+     */
     const handleSuggestionClick = (prompt) => {
         setIsTransitioning(true);
         setIsVisible(false);
         setTimeout(() => {
-            setMessage(prompt); // Only set the message, don't send it
+            setMessage(prompt);
             setShowNewConversation(false);
             setIsTransitioning(false);
         }, 300);
     };
 
+    /**
+     * Predefined suggestion options
+     * @type {Array<{title: string, description: string, icon: string, prompt: string}>}
+     */
     const suggestions = [
         {
             title: "Code Assistant",
@@ -155,6 +199,10 @@ const ChatApp = ({ message, setMessage, sendMessage, messages, selectedConversat
         }
     ];
 
+    /**
+     * Featured prompt suggestions
+     * @type {Array<string>}
+     */
     const featuredPrompts = [
         "Optimize this algorithm",
         "Review my code",
