@@ -4,13 +4,40 @@ import { ClickAwayListener } from '@mui/base';
 
 /**
  * Reusable dropdown menu component that can be used throughout the application.
+ * Provides a styled menu with customizable items and click-away behavior.
  * 
+ * @component
  * @param {Object} props
- * @param {HTMLElement} props.anchorEl - The element to anchor the menu to
- * @param {boolean} props.open - Whether the menu is open
- * @param {function} props.onClose - Function to call when the menu closes
- * @param {Array} props.menuItems - Array of menu items with their properties
- * @param {string} props.placement - Menu placement (e.g., 'bottom-end', 'bottom-start', etc.)
+ * @param {HTMLElement} props.anchorEl - The DOM element to anchor the menu to
+ * @param {boolean} props.open - Whether the menu is currently open
+ * @param {function} props.onClose - Callback function to handle menu closing
+ * @param {Array<MenuItemProps>} props.menuItems - Array of menu items to display
+ * @param {string} [props.placement='bottom-end'] - Menu placement relative to anchor element
+ * 
+ * @typedef {Object} MenuItemProps
+ * @property {string} label - Text to display for the menu item
+ * @property {React.ReactElement} icon - Icon component to display before the label
+ * @property {function} onClick - Callback function when item is clicked
+ * @property {string} [color] - Optional color for the menu item (e.g., 'danger.plainColor')
+ * @property {string} [hoverBg] - Optional background color for hover state
+ * 
+ * @example
+ * const menuItems = [
+ *   {
+ *     label: 'Delete',
+ *     icon: <DeleteIcon />,
+ *     onClick: handleDelete,
+ *     color: 'danger.plainColor'
+ *   }
+ * ];
+ * 
+ * <DropdownMenu
+ *   anchorEl={anchorElement}
+ *   open={isOpen}
+ *   onClose={handleClose}
+ *   menuItems={menuItems}
+ *   placement="bottom-start"
+ * />
  */
 const DropdownMenu = ({ 
     anchorEl, 
@@ -30,18 +57,19 @@ const DropdownMenu = ({
                     variant="outlined"
                     slotProps={{
                         root: {
-                            onClick: (e) => e.stopPropagation(),
+                            onClick: (e) => e.stopPropagation(), // Prevent event bubbling
                         },
                     }}
                     modifiers={[
                         {
                             name: 'offset',
                             options: {
-                                offset: [0, 4],
+                                offset: [0, 4], // [horizontal, vertical] offset
                             },
                         },
                     ]}
                     sx={{
+                        // Menu container styles
                         minWidth: 200,
                         '--Menu-decoration-offset': '8px',
                         '--Menu-radius': '12px',
@@ -58,11 +86,12 @@ const DropdownMenu = ({
                         <MenuItem
                             key={index}
                             onClick={(e) => {
-                                e.stopPropagation();
+                                e.stopPropagation(); // Prevent event bubbling
                                 item.onClick();
                                 onClose();
                             }}
                             sx={{
+                                // Menu item styles
                                 fontSize: '14px',
                                 py: '8px',
                                 px: '16px',
