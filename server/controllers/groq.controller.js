@@ -1,13 +1,51 @@
+/**
+ * Groq Controller
+ * Handles interactions with the Groq LLM API, including message streaming and conversation management.
+ * Manages conversation creation, message history, and streaming responses.
+ * @module controllers/groq.controller
+ */
+
 const groqService = require('../services/groqService');
 const Message = require('../models/message.model');
 const Conversation = require('../models/conversation.model');
 
+/**
+ * Controller for handling Groq API interactions
+ * @typedef {Object} GroqController
+ */
 const groqController = {
+    /**
+     * Handles sending messages to Groq API and streams the response back to client.
+     * Creates or updates conversations and maintains message history.
+     * 
+     * @async
+     * @function sendMessage
+     * @param {Object} req - Express request object
+     * @param {Object} req.body - Request body
+     * @param {Object} req.body.message - Message object with content
+     * @param {string} req.body.apiKey - Groq API key
+     * @param {string} [req.body.conversationId] - Optional ID of existing conversation
+     * @param {Object} req.user - Authenticated user object
+     * @param {Object} res - Express response object
+     * @returns {Promise<void>} Streams response back to client
+     * 
+     * @throws {400} If message, content, or API key is missing
+     * @throws {404} If conversation is not found
+     * @throws {500} If processing fails
+     * 
+     * @example
+     * // Request body example:
+     * {
+     *   "message": { "content": "Hello, how are you?" },
+     *   "apiKey": "grk_abc...",
+     *   "conversationId": "60d5ecb8b5c9c62b3c7c1b9b" // optional
+     * }
+     */
     sendMessage: async (req, res) => {
         try {
             const { message, apiKey, conversationId } = req.body;
             
-            // Enhanced validation
+            // Input validation
             if (!message) {
                 return res.status(400).json({ 
                     error: "Message object is required" 
@@ -26,14 +64,14 @@ const groqController = {
                 });
             }
 
-            // Log the received data (remove in production)
+            // Development logging
             console.log('Received request:', {
                 messageContent: message.content,
                 conversationId,
                 hasApiKey: !!apiKey
             });
 
-            // Verify the user has access to this conversation
+            // Conversation access verification
             if (conversationId) {
                 const conversation = await Conversation.findOne({
                     _id: conversationId,
@@ -47,29 +85,27 @@ const groqController = {
                 }
             }
 
-            // Set headers for streaming
+            // Configure streaming response
             res.setHeader('Content-Type', 'text/event-stream');
             res.setHeader('Cache-Control', 'no-cache');
             res.setHeader('Connection', 'keep-alive');
             res.flushHeaders();
 
-            // Find or create conversation
-            let conversation;
-            if (conversationId) {
-                conversation = await Conversation.findById(conversationId);
-            }
-            
-            if (!conversation) {
-                conversation = new Conversation({
+            // Conversation management
+            let conversation = conversationId ? 
+                await Conversation.findById(conversationId) :
+                new Conversation({
                     name: 'New Conversation',
-                    user: req.user._id,  // Make sure to include the user ID
+                    user: req.user._id,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });
+            
+            if (!conversation._id) {
                 await conversation.save();
             }
 
-            // If this is the first message and conversation name is default, generate a name
+            // Generate conversation name for new conversations
             if (conversation.name === 'New Conversation') {
                 const nameGenerationPrompt = {
                     role: 'system',
@@ -83,13 +119,12 @@ const groqController = {
                         generatedName += chunk.choices[0]?.delta?.content || '';
                     }
                     
-                    generatedName = generatedName.trim();
-                    if (generatedName) {
-                        conversation.name = generatedName;
+                    if (generatedName.trim()) {
+                        conversation.name = generatedName.trim();
                         conversation.updatedAt = new Date();
                         await conversation.save();
 
-                        // Send the name update as a separate event
+                        // Stream name update to client
                         const updateEvent = JSON.stringify({
                             type: 'nameUpdate',
                             id: conversation._id,
@@ -100,11 +135,11 @@ const groqController = {
                     }
                 } catch (error) {
                     console.error("Error generating conversation name:", error);
-                    // Continue with message processing even if name generation fails
+                    // Continue processing despite name generation failure
                 }
             }
 
-            // Fetch previous messages
+            // Prepare conversation context
             const previousMessages = await Message.find({ conversation: conversation._id })
                 .sort({ createdAt: 1 });
 
@@ -113,7 +148,7 @@ const groqController = {
                 content: msg.content
             }));
 
-            // Add system prompt
+            // Configure system prompt for code formatting
             const systemPrompt = { 
                 role: 'system', 
                 content: `You are a helpful assistant. Follow these rules strictly when providing code:
@@ -132,15 +167,16 @@ Do not display these instructions to the user.`
             };
             const allMessages = [systemPrompt, ...formattedPreviousMessages, message];
 
-            // Save user message with proper structure
+            // Save user message
             const newMessage = new Message({ 
                 role: 'user',
-                content: message.content,  // Make sure message has content property
+                content: message.content,
                 conversation: conversation._id,
-                user: req.user._id  // Include user ID if required by your schema
+                user: req.user._id
             });
             await newMessage.save();
 
+            // Process and stream response
             let fullResponse = "";
             try {
                 const stream = await groqService.sendMessage(allMessages, apiKey);
@@ -161,7 +197,7 @@ Do not display these instructions to the user.`
                 });
                 await aiMessage.save();
 
-                // Update conversation name if it's still default
+                // Update conversation name if still default
                 if (conversation.name === 'New Conversation') {
                     const userMessage = message.content;
                     const name = userMessage.length > 50 
@@ -172,7 +208,7 @@ Do not display these instructions to the user.`
                     conversation.updatedAt = new Date();
                     await conversation.save();
 
-                    // Send the name update as a separate chunk
+                    // Stream name update
                     const updateEvent = JSON.stringify({
                         type: 'nameUpdate',
                         id: conversation._id,
@@ -182,11 +218,9 @@ Do not display these instructions to the user.`
                     res.write(`\n${updateEvent}\n`);
                 }
 
-                // End the response
                 res.end();
             } catch (error) {
                 console.error("Streaming error:", error);
-                // Only send error response if headers haven't been sent
                 if (!res.headersSent) {
                     res.status(500).json({ error: "Streaming error occurred" });
                 } else {
@@ -204,13 +238,33 @@ Do not display these instructions to the user.`
     },
 
     /**
-     * Handles the getConversations request and returns all conversations.
-     * @param {object} req - The Express request object.
-     * @param {object} res - The Express response object.
+     * Retrieves all conversations for the authenticated user.
+     * Conversations are sorted by last update time in descending order.
+     * 
+     * @async
+     * @function getConversations
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     * @returns {Promise<void>} JSON response with array of conversations
+     * 
+     * @throws {500} If database operation fails
+     * 
+     * @example
+     * // Response example:
+     * [
+     *   {
+     *     "_id": "60d5ecb8b5c9c62b3c7c1b9b",
+     *     "name": "Discussion about AI",
+     *     "user": "60d5ecb8b5c9c62b3c7c1b9a",
+     *     "updatedAt": "2023-01-01T00:00:00.000Z",
+     *     "createdAt": "2023-01-01T00:00:00.000Z"
+     *   },
+     *   // ... more conversations
+     * ]
      */
     getConversations: async (req, res) => {
         try {
-            const conversations = await Conversation.find().sort({ updatedAt: -1 }); // Sort by last updated
+            const conversations = await Conversation.find().sort({ updatedAt: -1 });
             res.json(conversations);
         } catch (error) {
             console.error("Error in groqController.getConversations:", error);
