@@ -1,4 +1,10 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @fileoverview Combined Authentication component handling both login and registration
+ * Features an animated info section and a dynamic auth form with Google OAuth integration
+ * @module pages/auth/Auth
+ */
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, Typography, Input, Button, Divider, Stack, Box } from '@mui/joy';
 import { GoogleLogin } from '@react-oauth/google';
@@ -8,24 +14,35 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 
+/**
+ * Combined Authentication component that handles both login and registration
+ * Features animated UI elements, social links, and responsive design
+ * 
+ * @component
+ * @returns {JSX.Element} Authentication page component
+ */
 const Auth = () => {
     const navigate = useNavigate();
+
+    /** @type {[boolean, Function]} Toggle between login and registration modes */
     const [isLogin, setIsLogin] = useState(true);
+
+    /** @type {[FormData, Function]} Form data state and setter */
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
     });
+
+    /** @type {[string, Function]} Error message state and setter */
     const [error, setError] = useState('');
-    // Remove these states as they're no longer needed
-    // const [trails, setTrails] = useState([]);
-    // const trailCount = 30;
 
-    // Remove the entire useEffect hook that was handling the cursor trail
-    // useEffect(() => {
-    //    ...
-    // }, []);
-
+    /**
+     * Handles form input changes
+     * Updates formData state with new values
+     * 
+     * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+     */
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -33,6 +50,14 @@ const Auth = () => {
         });
     };
 
+    /**
+     * Handles form submission for both login and registration
+     * Sends authentication request to backend API
+     * 
+     * @async
+     * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
+     * @throws {Error} If authentication fails
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -60,6 +85,15 @@ const Auth = () => {
         }
     };
 
+    /**
+     * Handles Google OAuth authentication success
+     * Sends Google credentials to backend for verification
+     * 
+     * @async
+     * @param {Object} credentialResponse - Google OAuth credential response
+     * @param {string} credentialResponse.credential - Google OAuth token
+     * @throws {Error} If Google authentication fails
+     */
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             const response = await fetch('http://localhost:5000/api/auth/google', {
@@ -86,6 +120,7 @@ const Auth = () => {
         }
     };
 
+    /** @type {Array<FloatingShape>} Configuration for animated floating shapes */
     const shapes = [
         // Larger shapes with adjusted properties
         { color: '#FF5757', size: 180, speed: 15, delay: 0, rotate: true },
@@ -107,6 +142,7 @@ const Auth = () => {
         { color: '#FDE047', size: 135, speed: 30, delay: 0.3, rotate: true }
     ];
 
+    /** @type {Object} Common styles for input fields */
     const inputStyles = {
         '--Input-radius': '4px',
         '--Input-gap': '8px',
@@ -126,10 +162,22 @@ const Auth = () => {
         }
     };
 
+    /** @type {Array<SocialLink>} Configuration for social media links */
+    const socialLinks = [
+        { name: 'GitHub', url: 'https://github.com/Alaa-Taieb' },
+        { name: 'LinkedIn', url: 'https://www.linkedin.com/in/alaa-taieb/' },
+        { 
+            name: 'Portfolio (Coming Soon)', 
+            url: '#',
+            isWIP: true
+        }
+    ];
+
     return (
         <Box className={styles.authContainer}>
-            {/* Left side with profile and info */}
+            {/* Info Section */}
             <Box className={styles.infoSection}>
+                {/* Animated Floating Shapes */}
                 {shapes.map((shape, index) => (
                     <motion.div
                         key={index}
@@ -150,14 +198,15 @@ const Auth = () => {
                         style={{
                             width: shape.size,
                             height: shape.size,
-                            left: `${Math.random() * 80}%`,  // Random horizontal position
-                            top: `${Math.random() * 80}%`,   // Random vertical position
+                            left: `${Math.random() * 80}%`,
+                            top: `${Math.random() * 80}%`,
                             backgroundColor: shape.color,
-                            opacity: 0.15  // Reduced opacity for better background effect
+                            opacity: 0.15
                         }}
                     />
                 ))}
-                
+
+                {/* Profile Section */}
                 <motion.div 
                     className={styles.profileSection}
                     initial={{ opacity: 0, y: 20 }}
@@ -218,6 +267,7 @@ const Auth = () => {
                     </motion.div>
                 </motion.div>
 
+                {/* Content Section */}
                 <motion.div 
                     className={styles.contentSection}
                     initial={{ opacity: 0 }}
@@ -326,7 +376,7 @@ const Auth = () => {
                 </motion.div>
             </Box>
 
-            {/* Right side - White theme form */}
+            {/* Auth Form Section */}
             <Box className={styles.formSection}>
                 <div className={styles.formWrapper}>
                     <AnimatePresence mode="wait">
