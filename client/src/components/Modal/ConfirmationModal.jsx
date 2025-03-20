@@ -5,6 +5,50 @@ import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 
+/**
+ * A reusable confirmation modal component that can be used for various confirmation dialogs
+ * including dangerous actions. Supports displaying conversation details when relevant.
+ *
+ * @component
+ * @param {Object} props
+ * @param {boolean} props.open - Controls the visibility of the modal
+ * @param {Function} props.onClose - Callback function when modal is closed
+ * @param {Function} props.onConfirm - Callback function when action is confirmed
+ * @param {string} props.title - Title text displayed in the modal header
+ * @param {string} props.message - Main message content of the modal
+ * @param {string} [props.confirmText="Confirm"] - Text for the confirm button
+ * @param {string} [props.cancelText="Cancel"] - Text for the cancel button
+ * @param {boolean} [props.danger=false] - If true, styles the modal with danger/warning colors
+ * @param {Object} [props.conversationDetails=null] - Optional conversation details to display
+ * @param {string} props.conversationDetails.name - Name of the conversation
+ * @param {string} props.conversationDetails.createdAt - Creation timestamp of the conversation
+ * 
+ * @example
+ * // Basic usage
+ * <ConfirmationModal
+ *   open={isModalOpen}
+ *   onClose={() => setIsModalOpen(false)}
+ *   onConfirm={handleConfirm}
+ *   title="Confirm Action"
+ *   message="Are you sure you want to proceed?"
+ * />
+ * 
+ * @example
+ * // Usage with danger styling and conversation details
+ * <ConfirmationModal
+ *   open={isDeleteModalOpen}
+ *   onClose={handleClose}
+ *   onConfirm={handleDelete}
+ *   title="Delete Conversation"
+ *   message="This action cannot be undone."
+ *   danger={true}
+ *   confirmText="Delete"
+ *   conversationDetails={{
+ *     name: "My Conversation",
+ *     createdAt: "2024-01-01T00:00:00Z"
+ *   }}
+ * />
+ */
 const ConfirmationModal = ({ 
     open, 
     onClose, 
@@ -14,7 +58,7 @@ const ConfirmationModal = ({
     confirmText = "Confirm",
     cancelText = "Cancel",
     danger = false,
-    conversationDetails = null // New prop for conversation details
+    conversationDetails = null
 }) => {
     return (
         <Modal
