@@ -7,124 +7,190 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import { Box, Grid } from '@mui/joy';
 import Stepper from '@mui/joy/Stepper';
 import { useEffect, useState } from 'react';
-import Button from '@mui/joy/Button'
+import Button from '@mui/joy/Button';
 import ArrowCircleLeftOutlinedIcon from '@mui/icons-material/ArrowCircleLeftOutlined';
 import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
-// Define the steps of the API key creation process
-const steps =
-    [
-        { title: "Navigate", order: 1 },
-        { title: "Create API Key", order: 2 },
-        { title: "Name It", order: 3 },
-        { title: "Copy", order: 4 },
-    ];
-
-// Define the information associated with each step
-const information =
-    [
-        {
-            hint:
-                (
-                    <>
-                        <Typography level='body-sm' >
-                            This is the page you will be faced with when you login.
-                        </Typography>
-                        <Typography level='body-sm' variant='soft' color='primary' sx={{ fontWeight: 'bold' }} startDecorator={<InfoOutlinedIcon />}>
-                            Click on the API Keys menu link.
-                        </Typography>
-                    </>
-                ),
-            img: (
-                <>
-                    <img src="/assets/API_KEY_CREATION_PROCESS/STEP_1.png" alt="" width={"100%"} />
-                </>
-            )
-        },
-        {
-            hint:
-                (
-                    <>
-                        <Typography level='body-sm' >
-                            In this page you will be able to manage all you API keys.
-                        </Typography>
-                        <Typography level='body-sm' variant='soft' color='primary' sx={{ fontWeight: 'bold' }} startDecorator={<InfoOutlinedIcon />}>
-                            Click on the Create API Key button.
-                        </Typography>
-                    </>
-                ),
-            img: (
-                <>
-                    <img src="/assets/API_KEY_CREATION_PROCESS/STEP_2.png" alt="" width={"100%"} />
-                </>
-            )
-        },
-        {
-            hint:
-                (
-                    <>
-                        <Typography level='body-sm' >
-                            This form will allow you to name your API key, This is useful if you are planning on creating multiple keys for different uses.
-                        </Typography>
-                        <Typography level='body-sm' variant='soft' color='primary' sx={{ fontWeight: 'bold' }} startDecorator={<InfoOutlinedIcon />}>
-                            Insert a name for your API key and click Submit.
-                        </Typography>
-                        <Typography level='body-sm' variant='soft' color='warning' sx={{ fontWeight: 'bold' }} startDecorator={<InfoOutlinedIcon />}>
-                            We do not save your API keys, they are stored on your browser's cookies
-                        </Typography>
-                    </>
-                ),
-            img: (
-                <>
-                    <img src="/assets/API_KEY_CREATION_PROCESS/STEP_3.png" alt="" width={"100%"} />
-                </>
-            )
-        },
-        {
-            hint:
-                (
-                    <>
-                        <Typography level='body-sm' >
-                            Here you will be presented with an API key generated from Groq's servers.
-                        </Typography>
-                        <Typography level='body-sm' variant='soft' color='primary' sx={{ fontWeight: 'bold' }} startDecorator={<InfoOutlinedIcon />}>
-                            Click the Copy button and paste your key somewhere safe in your computer.
-                        </Typography>
-                        <Typography level='body-sm' variant='soft' color='warning' sx={{ fontWeight: 'bold' }} startDecorator={<InfoOutlinedIcon />}>
-                            This is the last time you will see your key, so you better save it!
-                        </Typography>
-                    </>
-                ),
-            img: (
-                <>
-                    <img src="/assets/API_KEY_CREATION_PROCESS/STEP_4.png" alt="" width={"100%"} />
-                </>
-            )
-        }
-    ]
+/**
+ * Steps configuration for the API key creation tutorial
+ * @type {Array<{title: string, order: number}>}
+ */
+const steps = [
+    { title: "Navigate", order: 1 },
+    { title: "Create API Key", order: 2 },
+    { title: "Name It", order: 3 },
+    { title: "Copy", order: 4 },
+];
 
 /**
- * APIKeyTutorial component
- * Displays a multi-step tutorial for API key creation using a stepper UI.
+ * Detailed information for each tutorial step
+ * @type {Array<{
+ *   hint: JSX.Element,
+ *   img: JSX.Element
+ * }>}
+ */
+const information = [
+    {
+        hint: (
+            <>
+                <Typography level='body-sm'>
+                    This is the page you will be faced with when you login.
+                </Typography>
+                <Typography 
+                    level='body-sm' 
+                    variant='soft' 
+                    color='primary' 
+                    sx={{ fontWeight: 'bold' }} 
+                    startDecorator={<InfoOutlinedIcon />}
+                >
+                    Click on the API Keys menu link.
+                </Typography>
+            </>
+        ),
+        img: (
+            <img 
+                src="/assets/API_KEY_CREATION_PROCESS/STEP_1.png" 
+                alt="Navigate to API Keys page" 
+                width="100%" 
+            />
+        )
+    },
+    {
+        hint: (
+            <>
+                <Typography level='body-sm'>
+                    In this page you will be able to manage all you API keys.
+                </Typography>
+                <Typography 
+                    level='body-sm' 
+                    variant='soft' 
+                    color='primary' 
+                    sx={{ fontWeight: 'bold' }} 
+                    startDecorator={<InfoOutlinedIcon />}
+                >
+                    Click on the Create API Key button.
+                </Typography>
+            </>
+        ),
+        img: (
+            <img 
+                src="/assets/API_KEY_CREATION_PROCESS/STEP_2.png" 
+                alt="Create API Key button" 
+                width="100%" 
+            />
+        )
+    },
+    {
+        hint: (
+            <>
+                <Typography level='body-sm'>
+                    This form will allow you to name your API key, This is useful if you are planning on creating multiple keys for different uses.
+                </Typography>
+                <Typography 
+                    level='body-sm' 
+                    variant='soft' 
+                    color='primary' 
+                    sx={{ fontWeight: 'bold' }} 
+                    startDecorator={<InfoOutlinedIcon />}
+                >
+                    Insert a name for your API key and click Submit.
+                </Typography>
+                <Typography 
+                    level='body-sm' 
+                    variant='soft' 
+                    color='warning' 
+                    sx={{ fontWeight: 'bold' }} 
+                    startDecorator={<InfoOutlinedIcon />}
+                >
+                    We do not save your API keys, they are stored on your browser's cookies
+                </Typography>
+            </>
+        ),
+        img: (
+            <img 
+                src="/assets/API_KEY_CREATION_PROCESS/STEP_3.png" 
+                alt="Name API Key form" 
+                width="100%" 
+            />
+        )
+    },
+    {
+        hint: (
+            <>
+                <Typography level='body-sm'>
+                    Here you will be presented with an API key generated from Groq's servers.
+                </Typography>
+                <Typography 
+                    level='body-sm' 
+                    variant='soft' 
+                    color='primary' 
+                    sx={{ fontWeight: 'bold' }} 
+                    startDecorator={<InfoOutlinedIcon />}
+                >
+                    Click the Copy button and paste your key somewhere safe in your computer.
+                </Typography>
+                <Typography 
+                    level='body-sm' 
+                    variant='soft' 
+                    color='warning' 
+                    sx={{ fontWeight: 'bold' }} 
+                    startDecorator={<InfoOutlinedIcon />}
+                >
+                    This is the last time you will see your key, so you better save it!
+                </Typography>
+            </>
+        ),
+        img: (
+            <img 
+                src="/assets/API_KEY_CREATION_PROCESS/STEP_4.png" 
+                alt="Copy API Key" 
+                width="100%" 
+            />
+        )
+    }
+];
+
+/**
+ * APIKeyTutorial component provides a step-by-step guide for creating and managing API keys.
+ * Features:
+ * - Interactive stepper UI
+ * - Visual progress indicators
+ * - Detailed instructions with images
+ * - Warning messages for important steps
  * 
- * @param {function} closeModal - Function to close the tutorial modal
+ * @component
+ * @param {Object} props
+ * @param {Function} props.closeModal - Function to close the tutorial modal
+ * @returns {JSX.Element} Rendered APIKeyTutorial component
+ * 
+ * @example
+ * <APIKeyTutorial closeModal={() => setShowTutorial(false)} />
  */
 const APIKeyTutorial = ({ closeModal }) => {
-    // Current step in the tutorial
-    const [cStep, setCStep] = useState(1); 
+    /**
+     * Current step in the tutorial process
+     * @type {[number, Function]}
+     */
+    const [cStep, setCStep] = useState(1);
 
-    // Offset for stepper line styles
+    /**
+     * Offset for the stepper line styling
+     * @type {[number, Function]}
+     */
     const [lineBottomOffset, setLineBottomOffset] = useState(0);
 
-    // Set an initial bottom offset for the stepper line after the component mounts
+    /**
+     * Initialize the line offset after component mount
+     */
     useEffect(() => {
         setLineBottomOffset(10);
-    }, [])
+    }, []);
+
     return (
-        <Grid container columns={12} spacing={2} >
+        <Grid container columns={12} spacing={2}>
             <Grid xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                <Typography level='h2' >
+                <Typography level='h2'>
                     Tutorial
                 </Typography>
             </Grid>
@@ -136,8 +202,7 @@ const APIKeyTutorial = ({ closeModal }) => {
                             flexDirection: 'column-reverse',
                             '&::after': {
                                 top: 'unset',
-                                bottom:
-                                    `${lineBottomOffset}px`,
+                                bottom: `${lineBottomOffset}px`,
                             },
                         },
                         [`& .${stepClasses.completed}::after`]: {
@@ -158,46 +223,32 @@ const APIKeyTutorial = ({ closeModal }) => {
                         },
                     }}
                 >
-                    {steps.map(step => {
-                        return (
-                            <Step
-                                active={step.order == cStep}
-                                completed={step.order < cStep}
-                                disabled={step.order > cStep}
-                                orientation='vertical'
-                                indicator={
-                                    cStep > step.order ?
-                                        (
-                                            <StepIndicator variant="solid" color="primary">
-                                                <CheckRoundedIcon />
-                                            </StepIndicator>
-
-                                        ) :
-                                        cStep == step.order ?
-                                            (
-                                                <StepIndicator variant="outlined" color="primary">
-                                                    <KeyboardArrowDownRoundedIcon />
-                                                </StepIndicator>
-                                            ) :
-                                            (<StepIndicator variant="outlined" color="neutral" />)
-
-                                }
-                            >
-                                <Typography
-                                    level="h4"
-                                    endDecorator={
-                                        <Typography sx={{ fontSize: 'sm', fontWeight: 'normal' }}>
-                                            {step.title}
-                                        </Typography>
-                                    }
-                                    sx={{ fontWeight: 'xl' }}
-                                >
-                                    {`0${step.order}`}
-                                </Typography>
-                            </Step>
-                        )
-                    })}
-
+                    {steps.map(step => (
+                        <Step
+                            key={step.order}
+                            active={step.order === cStep}
+                            completed={step.order < cStep}
+                            disabled={step.order > cStep}
+                            orientation='vertical'
+                            indicator={
+                                cStep > step.order ? (
+                                    <StepIndicator variant="solid" color="primary">
+                                        <CheckRoundedIcon />
+                                    </StepIndicator>
+                                ) : cStep === step.order ? (
+                                    <StepIndicator variant="outlined" color="primary">
+                                        <KeyboardArrowDownRoundedIcon />
+                                    </StepIndicator>
+                                ) : (
+                                    <StepIndicator>
+                                        {step.order}
+                                    </StepIndicator>
+                                )
+                            }
+                        >
+                            {step.title}
+                        </Step>
+                    ))}
                 </Stepper>
             </Grid>
 
