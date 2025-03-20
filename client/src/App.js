@@ -19,8 +19,7 @@ import Groq from 'groq-sdk';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Auth from './pages/auth/Auth';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
+
 
 /**
  * Protected Route Component
