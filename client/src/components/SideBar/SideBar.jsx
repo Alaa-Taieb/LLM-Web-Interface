@@ -1,21 +1,16 @@
+/**
+ * @fileoverview Sidebar component for managing conversations and navigation
+ * @module components/SideBar/SideBar
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-    IconButton, 
-    Sheet, 
-    List, 
-    ListItem, 
-    Typography, 
-    Box, 
-    Divider, 
-    Menu, 
-    MenuItem, 
-    Modal,
-    Button,
-    Tooltip
+    IconButton, Sheet, List, ListItem, Typography, Box, 
+    Divider, Menu, MenuItem, Modal, Button, Tooltip 
 } from '@mui/joy';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
-import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined'; // Paper icon
+import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styles from './SideBar.module.css';
@@ -23,59 +18,86 @@ import DropdownMenu from '../DropdownMenu/DropdownMenu';
 import ConfirmationModal from '../Modal/ConfirmationModal';
 
 /**
- * Component to render the sidebar with minimize/maximize functionality and conversation list.
- *
- * @param {Object} props - The component props.
- * @param {boolean} props.minimized - Whether the sidebar is minimized or not.
- * @param {function} props.setMinimized - Function to set the minimized state.
- * @param {function} props.onConversationSelect - Function to call when a conversation is selected.
+ * Sidebar component that displays conversations and provides navigation controls
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.minimized - Whether the sidebar is collapsed
+ * @param {Function} props.setMinimized - Function to toggle sidebar collapse state
+ * @param {string} props.selectedConversationId - ID of the currently selected conversation
+ * @param {Function} props.setSelectedConversationId - Function to update selected conversation
+ * @returns {JSX.Element} Rendered sidebar component
  */
 const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedConversationId }) => {
+    /** @type {[Array<Conversation>, Function]} State for all conversations */
     const [conversations, setConversations] = useState([]);
+    
+    /** @type {[boolean, Function]} State for tooltip visibility */
     const [tooltipOpen, setTooltipOpen] = useState(false);
+    
+    /** @type {[string|null, Function]} State for conversation ID with active tooltip */
     const [tooltipConversationId, setTooltipConversationId] = useState(null);
+    
+    /** @type {React.MutableRefObject} Ref for tooltip timeout */
     const timeoutRef = useRef(null);
+    
+    /** @type {[Array<Conversation>, Function]} State for recent conversations */
     const [recentConversations, setRecentConversations] = useState([]);
+    
+    /** @type {[Array<Conversation>, Function]} State for conversations from last 24 hours */
     const [last24HoursConversations, setLast24HoursConversations] = useState([]);
+    
+    /** @type {[Array<Conversation>, Function]} State for older conversations */
     const [historyConversations, setHistoryConversations] = useState([]);
+    
+    /** @type {[HTMLElement|null, Function]} State for dropdown menu anchor */
     const [anchorEl, setAnchorEl] = useState(null);
+    
+    /** @type {[string|null, Function]} State for conversation ID with active menu */
     const [menuConversationId, setMenuConversationId] = useState(null);
+    
+    /** @type {[boolean, Function]} State for delete confirmation modal */
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    
+    /** @type {[string|null, Function]} State for conversation pending deletion */
     const [conversationToDelete, setConversationToDelete] = useState(null);
 
+    /**
+     * Fetches conversations from the API and categorizes them
+     * 
+     * @async
+     * @throws {Error} If API request fails
+     */
     const fetchConversations = async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/groq/conversations', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
             const data = await response.json();
             setConversations(data);
 
-            // Sort conversations by updatedAt in descending order
+            // Sort conversations by update time
             const sortedConversations = [...data].sort((a, b) => 
                 new Date(b.updatedAt) - new Date(a.updatedAt)
             );
 
-            // 1. Most Recent (top 3)
+            // Categorize conversations
             const recent = sortedConversations.slice(0, 3);
             setRecentConversations(recent);
 
-            // 2. Last 24 Hours (excluding those in Recent)
             const now = new Date();
             const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+            
             const last24 = sortedConversations.filter(conversation => 
                 new Date(conversation.updatedAt) >= twentyFourHoursAgo &&
                 !recent.find(r => r._id === conversation._id)
             );
             setLast24HoursConversations(last24);
 
-            // 3. History (everything else)
             const history = sortedConversations.filter(conversation =>
                 !recent.find(r => r._id === conversation._id) &&
                 !last24.find(r => r._id === conversation._id)
@@ -86,18 +108,23 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         }
     };
 
+    /**
+     * Effect hook to manage conversation updates and initial fetch
+     * 
+     * Sets up an event listener for 'conversationsUpdated' events and performs
+     * initial conversation fetch. Cleans up event listener on unmount.
+     * 
+     * @listens {Event} conversationsUpdated - Custom event triggered when conversations change
+     * @fires {Function} fetchConversations - Fetches and updates conversation lists
+     */
     useEffect(() => {
-        // Add event listener for conversation updates
         const handleConversationsUpdate = () => {
             fetchConversations();
         };
 
         window.addEventListener('conversationsUpdated', handleConversationsUpdate);
-
-        // Initial fetch
         fetchConversations();
 
-        // Cleanup
         return () => {
             window.removeEventListener('conversationsUpdated', handleConversationsUpdate);
         };
@@ -141,6 +168,12 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         }
     };
 
+    /**
+     * Creates a new conversation
+     * 
+     * @async
+     * @throws {Error} If API request fails
+     */
     const createNewConversation = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -153,9 +186,7 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 body: JSON.stringify({ name: 'New Conversation' }),
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const newConversation = await response.json();
             handleConversationClick(newConversation._id);
@@ -165,6 +196,16 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         }
     };
 
+    /**
+     * Effect hook to monitor selected conversation and update its name
+     * 
+     * Checks if the selected conversation is new and updates its name based on
+     * message content. Fetches messages for the conversation and updates the name
+     * if necessary.
+     * 
+     * @param {string} selectedConversationId - Currently selected conversation ID
+     * @fires {Function} fetchConversationName - Fetches and updates conversation name
+     */
     useEffect(() => {
         const updateConversationName = async () => {
             if (selectedConversationId) {
@@ -211,6 +252,19 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         setTooltipConversationId(null);
     };
 
+    /**
+     * Effect hook to handle conversation name updates
+     * 
+     * Listens for 'conversationNameUpdated' events and updates the conversation lists
+     * accordingly. Maintains conversation categorization (recent, last 24 hours, history)
+     * when names are updated.
+     * 
+     * @listens {Event} conversationNameUpdated - Custom event for name updates
+     * @fires {Function} setConversations - Updates conversation state
+     * @fires {Function} setRecentConversations - Updates recent conversations
+     * @fires {Function} setLast24HoursConversations - Updates last 24 hours conversations
+     * @fires {Function} setHistoryConversations - Updates history conversations
+     */
     useEffect(() => {
         const handleNameUpdate = (event) => {
             const { id, name, updatedAt } = event.detail;
@@ -256,11 +310,17 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
 
         window.addEventListener('conversationNameUpdated', handleNameUpdate);
         return () => window.removeEventListener('conversationNameUpdated', handleNameUpdate);
-    }, []); // Empty dependency array since we don't need any dependencies
+    }, []);
 
-    // Add a new effect to monitor conversations state changes
+    /**
+     * Effect hook to debug conversation state changes
+     * 
+     * Logs conversation state updates to console for debugging purposes.
+     * 
+     * @param {Array<Conversation>} conversations - Current conversations state
+     */
     useEffect(() => {
-        console.log('Conversations state updated:', conversations); // Debug log
+        console.log('Conversations state updated:', conversations);
     }, [conversations]);
 
     const handleGearClick = (e, conversationId) => {
@@ -275,6 +335,12 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         setMenuConversationId(null);
     };
 
+    /**
+     * Deletes a conversation
+     * 
+     * @async
+     * @throws {Error} If API request fails
+     */
     const handleConfirmDelete = async () => {
         try {
             if (!conversationToDelete) {
@@ -291,9 +357,7 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
                 }
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             await fetchConversations();
             
@@ -347,6 +411,12 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         },
     };
 
+    /**
+     * Renders a single conversation item
+     * 
+     * @param {Conversation} conversation - Conversation data to render
+     * @returns {JSX.Element} Rendered conversation item
+     */
     const renderConversationItem = (conversation) => (
         <ListItem
             key={conversation._id}
@@ -510,5 +580,12 @@ const SideBar = ({ minimized, setMinimized, selectedConversationId, setSelectedC
         </Sheet>
     );
 }
+
+/**
+ * @typedef {Object} Conversation
+ * @property {string} _id - Unique identifier
+ * @property {string} name - Conversation name
+ * @property {string} updatedAt - Last update timestamp
+ */
 
 export default SideBar;
